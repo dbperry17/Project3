@@ -273,61 +273,88 @@ void Parser::parse_stmt()
     }
 }
 
+//assign_stmt -> ID EQUAL expr SEMICOLON
 void Parser::parse_assign_stmt()
 {
     // TODO
+
 }
 
+//while_stmt -> WHILE condition body
 void Parser::parse_while_stmt()
 {
     // TODO
 }
 
+//do_stmt -> DO body WHILE condition SEMICOLON
 void Parser::parse_do_stmt()
 {
     // TODO
 }
 
+//switch_stmt -> SWITCH ID LBRACE case_list RBRACE
 void Parser::parse_switch_stmt()
 {
     // TODO
 }
 
+//case_list -> case case_list
+//case_list -> case
 void Parser::parse_case_list()
 {
     // TODO
 }
 
+//case -> CASE NUM COLON body
 void Parser::parse_case()
 {
     // TODO
 }
 
+//expr -> term PLUS expr
+//expr -> term
 void Parser::parse_expr()
 {
     // TODO
 }
 
+//term -> factor MULT term
+//term -> factor DIV term
+//term -> factor
 void Parser::parse_term()
 {
     // TODO
 }
 
+//factor -> LPAREN expr RPAREN
+//factor -> NUM
+//factor -> REALNUM
+//factor -> ID
 void Parser::parse_factor()
 {
     // TODO
 }
 
+//condition -> ID
+//condition -> primary relop primary
 void Parser::parse_condition()
 {
     // TODO
 }
 
+//primary -> ID
+//primary -> NUM
+//primary -> REALNUM
 void Parser::parse_primary()
 {
     // TODO
 }
 
+//relop-> GREATER
+//relop-> GTEQ
+//relop-> LESS
+//relop-> NOTEQUAL
+//relop-> LTEQ
 void Parser::parse_relop()
 {
     // TODO
