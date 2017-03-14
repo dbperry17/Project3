@@ -29,6 +29,8 @@ Token Parser::expect(TokenType expected_type)
     Token t = lexer.GetToken();
     if (t.token_type != expected_type)
         syntax_error();
+    else if(testParse)
+        cout << " " << t.lexeme;
     return t;
 }
 
@@ -585,7 +587,7 @@ void Parser::parse_condition()
         cout << "\nParsing: " << "condition" << endl;
 
     // TODO
-    Token t = peek();
+    Token t = lexer.GetToken();
     if((t.token_type == NUM) || (t.token_type == REALNUM))
     {
         //condition -> primary relop primary
@@ -595,18 +597,20 @@ void Parser::parse_condition()
     }
     else if(t.token_type == ID)
     {
-        expect(ID);
-        t = peek();
 
-        if((t.token_type == GREATER) || (t.token_type == GTEQ) ||
-           (t.token_type == LESS) || (t.token_type == LTEQ) || (t.token_type == NOTEQUAL))
+        Token t2 = peek();
+
+
+        if((t2.token_type == GREATER) || (t2.token_type == GTEQ) ||
+           (t2.token_type == LESS) || (t2.token_type == LTEQ) || (t2.token_type == NOTEQUAL))
         {
             //condition -> primary relop primary
+            lexer.UngetToken(t);
             parse_primary();
             parse_relop();
             parse_primary();
         }
-        else if((t.token_type == LBRACE) || (t.token_type == SEMICOLON))
+        else if((t2.token_type == LBRACE) || (t2.token_type == SEMICOLON))
         {
             //condition -> ID
         }
@@ -630,6 +634,11 @@ void Parser::parse_primary()
 
     // TODO
     Token t = lexer.GetToken();
+    if(testParse)
+    {
+        cout << "Token: " << endl;
+        t.Print();
+    }
     if((t.token_type == ID) || (t.token_type == NUM) || (t.token_type == REALNUM))
     {
         //primary -> ID
