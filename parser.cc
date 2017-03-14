@@ -8,6 +8,7 @@
 #include "parser.h"
 
 using namespace std;
+bool testParse = false;
 
 void Parser::syntax_error()
 {
@@ -15,8 +16,16 @@ void Parser::syntax_error()
     exit(1);
 }
 
+void Parser::syntax_error(int x)
+{
+    cout << "Syntax Error: " << x << endl;
+    exit(1);
+}
+
 Token Parser::expect(TokenType expected_type)
 {
+    if(testParse)
+        cout << "Expecting Terminal" << endl;
     Token t = lexer.GetToken();
     if (t.token_type != expected_type)
         syntax_error();
@@ -34,20 +43,33 @@ Token Parser::peek()
 
 void Parser::parse_program()
 {
+    if(testParse)
+        cout << "\nParsing: " << "program" << endl;
     // program -> decl body
     parse_decl();
     parse_body();
+    if(testParse)
+        cout << "Done Parsing: " << "program" << endl;
 }
 
 void Parser::parse_decl()
 {
+    if(testParse)
+        cout << "\nParsing: " << "decl" << endl;
+
     // decl -> type_decl_section var_decl_section
     parse_type_decl_section();
     parse_var_decl_section();
+
+    if(testParse)
+        cout << "Done Parsing: " << "decl" << endl;
 }
 
 void Parser::parse_type_decl_section()
 {
+    if(testParse)
+        cout << "\nParsing: " << "decl_section" << endl;
+
     // type_decl_section -> TYPE type_decl_list
     // type_decl_section -> epsilon
     Token t = lexer.GetToken();
@@ -65,10 +87,15 @@ void Parser::parse_type_decl_section()
     {
         syntax_error();
     }
+    if(testParse)
+        cout << "Done Parsing: " << "decl_section" << endl;
 }
 
 void Parser::parse_type_decl_list()
 {
+    if(testParse)
+        cout << "\nParsing: " << "type_decl_list" << endl;
+
     // type_decl_list -> type_decl
     // type_decl_list -> type_decl type_decl_list
     parse_type_decl();
@@ -86,19 +113,31 @@ void Parser::parse_type_decl_list()
     {
         syntax_error();
     }
+
+    if(testParse)
+        cout << "Done Parsing: " << "type_decl_list" << endl;
 }
 
 void Parser::parse_type_decl()
 {
+    if(testParse)
+        cout << "\nParsing: " << "type_decl" << endl;
+
     // type_decl -> id_list COLON type_name SEMICOLON
     parse_id_list();
     expect(COLON);
     parse_type_name();
     expect(SEMICOLON);
+
+    if(testParse)
+        cout << "Done Parsing: " << "type_decl" << endl;
 }
 
 void Parser::parse_type_name()
 {
+    if(testParse)
+        cout << "\nParsing: " << "type_name" << endl;
+
     // type_name -> REAL
     // type_name -> INT
     // type_name -> BOOLEAN
@@ -134,10 +173,16 @@ void Parser::parse_type_name()
     {
         syntax_error();
     }
+
+    if(testParse)
+        cout << "Done Parsing: " << "type_name" << endl;
 }
 
 void Parser::parse_var_decl_section()
 {
+    if(testParse)
+        cout << "\nParsing: " << "var_decl_section" << endl;
+
     // var_decl_section -> VAR var_decl_list
     // var_decl_section -> epsilon
     Token t = lexer.GetToken();
@@ -155,10 +200,17 @@ void Parser::parse_var_decl_section()
     {
         syntax_error();
     }
+
+    if(testParse)
+        cout << "Done Parsing: " << "var_decl_section" << endl;
+
 }
 
 void Parser::parse_var_decl_list()
 {
+    if(testParse)
+        cout << "\nParsing: " << "var_decl_list" << endl;
+
     // var_decl_list -> var_decl
     // var_decl_list -> var_decl var_decl_list
     parse_var_decl();
@@ -176,19 +228,31 @@ void Parser::parse_var_decl_list()
     {
         syntax_error();
     }
+
+    if(testParse)
+        cout << "Done Parsing: " << "var_decl_list" << endl;;
 }
 
 void Parser::parse_var_decl()
 {
+    if(testParse)
+        cout << "\nParsing: " << "var_decl" << endl;
+
     // var_decl -> id_list COLON type_name SEMICOLON
     parse_id_list();
     expect(COLON);
     parse_type_name();
     expect(SEMICOLON);
+
+    if(testParse)
+        cout << "Done Parsing: " << "var_decl" << endl;
 }
 
 void Parser::parse_id_list()
 {
+    if(testParse)
+        cout << "\nParsing: " << "id_list" << endl;
+
     // id_list -> ID
     // id_list -> ID COMMA id_list
     expect(ID);
@@ -207,19 +271,31 @@ void Parser::parse_id_list()
     {
         syntax_error();
     }
+
+    if(testParse)
+        cout << "Done Parsing: " << "id_list" << endl;
 }
 
 
 void Parser::parse_body()
 {
+    if(testParse)
+        cout << "\nParsing: " << "body" << endl;
+
     // body -> LBRACE stmt_list RBRACE
     expect(LBRACE);
     parse_stmt_list();
     expect(RBRACE);
+
+    if(testParse)
+        cout << "Done Parsing: " << "body" << endl;
 }
 
 void Parser::parse_stmt_list()
 {
+    if(testParse)
+        cout << "\nParsing: " << "stmt_list" << endl;
+
     // stmt_list -> stmt
     // stmt_list -> stmt stmt_list
     parse_stmt();
@@ -238,10 +314,16 @@ void Parser::parse_stmt_list()
     {
         syntax_error();
     }
+
+    if(testParse)
+        cout << "Done Parsing: " << "stmt_list" << endl;
 }
 
 void Parser::parse_stmt()
 {
+    if(testParse)
+        cout << "\nParsing: " << "stmt" << endl;
+
     // stmt -> assign_stmt
     // stmt -> while_stmt
     // stmt -> do_stmt
@@ -271,53 +353,83 @@ void Parser::parse_stmt()
     {
         syntax_error();
     }
+
+    if(testParse)
+        cout << "Done Parsing: " << "stmt" << endl;
 }
 
 //assign_stmt -> ID EQUAL expr SEMICOLON
 void Parser::parse_assign_stmt()
 {
+    if(testParse)
+        cout << "\nParsing: " << "assign_stmt" << endl;
+
     // TODO
     expect(ID);
     expect(EQUAL);
     parse_expr();
     expect(SEMICOLON);
+
+    if(testParse)
+        cout << "Done Parsing: " << "assign_stmt" << endl;
 }
 
 //while_stmt -> WHILE condition body
 void Parser::parse_while_stmt()
 {
+    if(testParse)
+        cout << "\nParsing: " << "while_stmt" << endl;
+
     // TODO
     expect(WHILE);
     parse_condition();
     parse_body();
+
+    if(testParse)
+        cout << "Done Parsing: " << "while_stmt" << endl;
 }
 
 //do_stmt -> DO body WHILE condition SEMICOLON
 void Parser::parse_do_stmt()
 {
+    if(testParse)
+        cout << "\nParsing: " << "do_stmt" << endl;
+
     // TODO
     expect(DO);
     parse_body();
     expect(WHILE);
     parse_condition();
     expect(SEMICOLON);
+
+    if(testParse)
+        cout << "Done Parsing: " << "do_stmt" << endl;
 }
 
 //switch_stmt -> SWITCH ID LBRACE case_list RBRACE
 void Parser::parse_switch_stmt()
 {
+    if(testParse)
+        cout << "\nParsing: " << "switch_stmt" << endl;
+
     // TODO
     expect(SWITCH);
     expect(ID);
     expect(LBRACE);
     parse_case_list();
     expect(RBRACE);
+
+    if(testParse)
+        cout << "Done Parsing: " << "switch_stmt" << endl;
 }
 
 //case_list -> case case_list
 //case_list -> case
 void Parser::parse_case_list()
 {
+    if(testParse)
+        cout << "\nParsing: " << "case_list" << endl;
+
     // TODO
     parse_case();
     Token t = peek();
@@ -331,38 +443,54 @@ void Parser::parse_case_list()
         //case_list -> case
     }
     else
-        syntax_error();
+        syntax_error(8);
+
+    if(testParse)
+        cout << "Done Parsing: " << "case_list" << endl;
+
 }
 
 //case -> CASE NUM COLON body
 void Parser::parse_case()
 {
+    if(testParse)
+        cout << "\nParsing: " << "case" << endl;
+
     // TODO
     expect(CASE);
     expect(NUM);
     expect(COLON);
     parse_body();
+
+    if(testParse)
+        cout << "Done Parsing: " << "case" << endl;
 }
 
 //expr -> term PLUS expr
 //expr -> term
 void Parser::parse_expr()
 {
+    if (testParse)
+        cout << "\nParsing: " << "expr" << endl;
+
     // TODO
     parse_term();
     Token t = lexer.GetToken();
-    if(t.token_type == PLUS)
+    if (t.token_type == PLUS)
     {
         //expr -> term PLUS expr
         parse_expr();
     }
-    else if((t.token_type == SEMICOLON) || (t.token_type == RPAREN))
+    else if ((t.token_type == SEMICOLON) || (t.token_type == RPAREN))
     {
         //expr -> term
         lexer.UngetToken(t);
     }
     else
-        syntax_error();
+        syntax_error(7);
+
+    if (testParse)
+        cout << "Done Parsing: " << "expr" << endl;
 }
 
 //term -> factor MULT term
@@ -370,6 +498,9 @@ void Parser::parse_expr()
 //term -> factor
 void Parser::parse_term()
 {
+    if(testParse)
+        cout << "\nParsing: " << "term" << endl;
+
     // TODO
     parse_factor();
     Token t = lexer.GetToken();
@@ -389,7 +520,10 @@ void Parser::parse_term()
         lexer.UngetToken(t);
     }
     else
-        syntax_error();
+        syntax_error(6);
+
+    if(testParse)
+        cout << "Done Parsing: " << "term" << endl;
 }
 
 //factor -> LPAREN expr RPAREN
@@ -398,8 +532,17 @@ void Parser::parse_term()
 //factor -> ID
 void Parser::parse_factor()
 {
+    if(testParse)
+        cout << "\nParsing: " << "factor" << endl;
+
     // TODO
     Token t = lexer.GetToken();
+    if(testParse)
+    {
+        cout << "Token: " << endl;
+        t.Print();
+    }
+
     if(t.token_type == LPAREN)
     {
         //factor -> LPAREN expr RPAREN
@@ -408,26 +551,39 @@ void Parser::parse_factor()
     }
     else if((t.token_type == NUM) || (t.token_type == REALNUM) || (t.token_type == ID))
     {
+        t = lexer.GetToken();
+        if(testParse)
+        {
+            cout << "Token: " << endl;
+            t.Print();
+        }
+
         if((t.token_type == MULT) || (t.token_type == DIV) ||
-           (t.token_type == PLUS) || (t.token_type == SEMICOLON) || (t.token_type == RPAREN))
+           (t.token_type == PLUS) || (t.token_type == SEMICOLON) ||
+           (t.token_type == RPAREN))
         {
             //factor -> NUM
             //factor -> REALNUM
             //factor -> ID
-            t = lexer.GetToken();
             lexer.UngetToken(t);
         }
         else
-            syntax_error();
+            syntax_error(5);
     }
     else
-        syntax_error();
+        syntax_error(4);
+
+    if(testParse)
+        cout << "Done Parsing: " << "factor" << endl;
 }
 
 //condition -> ID
 //condition -> primary relop primary
 void Parser::parse_condition()
 {
+    if(testParse)
+        cout << "\nParsing: " << "condition" << endl;
+
     // TODO
     Token t = peek();
     if((t.token_type == NUM) || (t.token_type == REALNUM))
@@ -455,10 +611,13 @@ void Parser::parse_condition()
             //condition -> ID
         }
         else
-            syntax_error();
+            syntax_error(3);
     }
     else
-        syntax_error();
+        syntax_error(2);
+
+    if(testParse)
+        cout << "Done Parsing: " << "condition" << endl;
 }
 
 //primary -> ID
@@ -466,6 +625,9 @@ void Parser::parse_condition()
 //primary -> REALNUM
 void Parser::parse_primary()
 {
+    if(testParse)
+        cout << "\nParsing: " << "primary" << endl;
+
     // TODO
     Token t = lexer.GetToken();
     if((t.token_type == ID) || (t.token_type == NUM) || (t.token_type == REALNUM))
@@ -475,7 +637,10 @@ void Parser::parse_primary()
         //primary -> REALNUM
     }
     else
-        syntax_error();
+        syntax_error(1);
+
+    if(testParse)
+        cout << "Done Parsing: " << "primary" << endl;
 }
 
 //relop-> GREATER
@@ -485,6 +650,9 @@ void Parser::parse_primary()
 //relop-> LTEQ
 void Parser::parse_relop()
 {
+    if(testParse)
+        cout << "\nParsing: " << "relop" << endl;
+
     // TODO
     Token t = lexer.GetToken();
     if((t.token_type == GREATER) || (t.token_type == GTEQ) ||
@@ -497,7 +665,10 @@ void Parser::parse_relop()
         //relop-> LTEQ
     }
     else
-        syntax_error();
+        syntax_error(0);
+
+    if(testParse)
+        cout << "Done Parsing: " << "relop" << endl;
 }
 
 void Parser::ParseInput()

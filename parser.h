@@ -14,6 +14,7 @@ class Parser {
     LexicalAnalyzer lexer;
 
     void syntax_error();
+    void syntax_error(int x);
     Token expect(TokenType expected_type);
     Token peek();
 
