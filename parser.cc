@@ -277,25 +277,41 @@ void Parser::parse_stmt()
 void Parser::parse_assign_stmt()
 {
     // TODO
-
+    expect(ID);
+    expect(EQUAL);
+    parse_expr();
+    expect(SEMICOLON);
 }
 
 //while_stmt -> WHILE condition body
 void Parser::parse_while_stmt()
 {
     // TODO
+    expect(WHILE);
+    parse_condition();
+    parse_body();
 }
 
 //do_stmt -> DO body WHILE condition SEMICOLON
 void Parser::parse_do_stmt()
 {
     // TODO
+    expect(DO);
+    parse_body();
+    expect(WHILE);
+    parse_condition();
+    expect(SEMICOLON);
 }
 
 //switch_stmt -> SWITCH ID LBRACE case_list RBRACE
 void Parser::parse_switch_stmt()
 {
     // TODO
+    expect(SWITCH);
+    expect(ID);
+    expect(LBRACE);
+    parse_case_list();
+    expect(RBRACE);
 }
 
 //case_list -> case case_list
@@ -303,12 +319,29 @@ void Parser::parse_switch_stmt()
 void Parser::parse_case_list()
 {
     // TODO
+    parse_case();
+    Token t = peek();
+    if(t.token_type == CASE)
+    {
+        //case_list -> case case_list
+        parse_case_list();
+    }
+    else if(t.token_type == RBRACE)
+    {
+        //case_list -> case
+    }
+    else
+        syntax_error();
 }
 
 //case -> CASE NUM COLON body
 void Parser::parse_case()
 {
     // TODO
+    expect(CASE);
+    expect(NUM);
+    expect(COLON);
+    parse_body();
 }
 
 //expr -> term PLUS expr
@@ -316,6 +349,20 @@ void Parser::parse_case()
 void Parser::parse_expr()
 {
     // TODO
+    parse_term();
+    Token t = lexer.GetToken();
+    if(t.token_type == PLUS)
+    {
+        //expr -> term PLUS expr
+        parse_expr();
+    }
+    else if((t.token_type == SEMICOLON) || (t.token_type == RPAREN))
+    {
+        //expr -> term
+        lexer.UngetToken(t);
+    }
+    else
+        syntax_error();
 }
 
 //term -> factor MULT term
@@ -324,6 +371,25 @@ void Parser::parse_expr()
 void Parser::parse_term()
 {
     // TODO
+    parse_factor();
+    Token t = lexer.GetToken();
+    if(t.token_type == MULT)
+    {
+        //term -> factor MULT term
+        parse_term();
+    }
+    else if(t.token_type == DIV)
+    {
+        //term -> factor DIV term
+        parse_term();
+    }
+    else if((t.token_type == PLUS) || (t.token_type == SEMICOLON) || (t.token_type == RPAREN))
+    {
+        //term -> factor
+        lexer.UngetToken(t);
+    }
+    else
+        syntax_error();
 }
 
 //factor -> LPAREN expr RPAREN
@@ -333,6 +399,29 @@ void Parser::parse_term()
 void Parser::parse_factor()
 {
     // TODO
+    Token t = lexer.GetToken();
+    if(t.token_type == LPAREN)
+    {
+        //factor -> LPAREN expr RPAREN
+        parse_expr();
+        expect(RPAREN);
+    }
+    else if((t.token_type == NUM) || (t.token_type == REALNUM) || (t.token_type == ID))
+    {
+        if((t.token_type == MULT) || (t.token_type == DIV) ||
+           (t.token_type == PLUS) || (t.token_type == SEMICOLON) || (t.token_type == RPAREN))
+        {
+            //factor -> NUM
+            //factor -> REALNUM
+            //factor -> ID
+            t = lexer.GetToken();
+            lexer.UngetToken(t);
+        }
+        else
+            syntax_error();
+    }
+    else
+        syntax_error();
 }
 
 //condition -> ID
@@ -340,6 +429,36 @@ void Parser::parse_factor()
 void Parser::parse_condition()
 {
     // TODO
+    Token t = peek();
+    if((t.token_type == NUM) || (t.token_type == REALNUM))
+    {
+        //condition -> primary relop primary
+        parse_primary();
+        parse_relop();
+        parse_primary();
+    }
+    else if(t.token_type == ID)
+    {
+        expect(ID);
+        t = peek();
+
+        if((t.token_type == GREATER) || (t.token_type == GTEQ) ||
+           (t.token_type == LESS) || (t.token_type == LTEQ) || (t.token_type == NOTEQUAL))
+        {
+            //condition -> primary relop primary
+            parse_primary();
+            parse_relop();
+            parse_primary();
+        }
+        else if((t.token_type == LBRACE) || (t.token_type == SEMICOLON))
+        {
+            //condition -> ID
+        }
+        else
+            syntax_error();
+    }
+    else
+        syntax_error();
 }
 
 //primary -> ID
@@ -348,6 +467,15 @@ void Parser::parse_condition()
 void Parser::parse_primary()
 {
     // TODO
+    Token t = lexer.GetToken();
+    if((t.token_type == ID) || (t.token_type == NUM) || (t.token_type == REALNUM))
+    {
+        //primary -> ID
+        //primary -> NUM
+        //primary -> REALNUM
+    }
+    else
+        syntax_error();
 }
 
 //relop-> GREATER
@@ -358,6 +486,18 @@ void Parser::parse_primary()
 void Parser::parse_relop()
 {
     // TODO
+    Token t = lexer.GetToken();
+    if((t.token_type == GREATER) || (t.token_type == GTEQ) ||
+       (t.token_type == LESS) || (t.token_type == LTEQ) || (t.token_type == NOTEQUAL))
+    {
+        //relop-> GREATER
+        //relop-> GTEQ
+        //relop-> LESS
+        //relop-> NOTEQUAL
+        //relop-> LTEQ
+    }
+    else
+        syntax_error();
 }
 
 void Parser::ParseInput()
