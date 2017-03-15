@@ -16,6 +16,10 @@ void tester()
 {
     if(testing)
     {
+        cout << "\n\nSTARTING PROGRAM" << endl;
+    }
+    else
+    {
         testParse = false;
     }
 }
