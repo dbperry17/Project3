@@ -8,7 +8,17 @@
 #include "parser.h"
 
 using namespace std;
-bool testParse = false;
+
+bool testing = true;
+bool testParse = true;
+
+void tester()
+{
+    if(testing)
+    {
+        testParse = false;
+    }
+}
 
 void Parser::syntax_error()
 {
@@ -24,8 +34,11 @@ void Parser::syntax_error(int x)
 
 Token Parser::expect(TokenType expected_type)
 {
-    if(testParse)
+    if(testParse && (expected_type != END_OF_FILE))
         cout << "Expecting Terminal" << endl;
+    else if(testParse)
+        cout << "End of file" << endl;
+
     Token t = lexer.GetToken();
     if (t.token_type != expected_type)
         syntax_error();
@@ -688,6 +701,8 @@ void Parser::ParseInput()
 
 int main()
 {
+    tester();
+
     Parser parser;
 
     parser.ParseInput();
