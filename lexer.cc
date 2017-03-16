@@ -210,57 +210,57 @@ Token LexicalAnalyzer::GetToken()
     switch (c) {
         case ',':
             if(testLexer)
-                tmp.lexeme == ",";
+                tmp.lexeme = ",";
             tmp.token_type = COMMA;
             return tmp;
         case ':':
             if(testLexer)
-                tmp.lexeme == ":";
+                tmp.lexeme = ":";
             tmp.token_type = COLON;
             return tmp;
         case ';':
             if(testLexer)
-                tmp.lexeme == ";";
+                tmp.lexeme = ";";
             tmp.token_type = SEMICOLON;
             return tmp;
         case '{':
             if(testLexer)
-                tmp.lexeme == "{";
+                tmp.lexeme = "{";
             tmp.token_type = LBRACE;
             return tmp;
         case '}':
             if(testLexer)
-                tmp.lexeme == "}";
+                tmp.lexeme = "}";
             tmp.token_type = RBRACE;
             return tmp;
         case '(':
             if(testLexer)
-                tmp.lexeme == "(";
+                tmp.lexeme = "(";
             tmp.token_type = LPAREN;
             return tmp;
         case ')':
             if(testLexer)
-                tmp.lexeme == ")";
+                tmp.lexeme = ")";
             tmp.token_type = RPAREN;
             return tmp;
         case '=':
             if(testLexer)
-                tmp.lexeme == "=";
+                tmp.lexeme = "=";
             tmp.token_type = EQUAL;
             return tmp;
         case '+':
             if(testLexer)
-                tmp.lexeme == "+";
+                tmp.lexeme = "+";
             tmp.token_type = PLUS;
             return tmp;
         case '*':
             if(testLexer)
-                tmp.lexeme == "*";
+                tmp.lexeme = "*";
             tmp.token_type = MULT;
             return tmp;
         case '/':
             if(testLexer)
-                tmp.lexeme == "/";
+                tmp.lexeme = "/";
             tmp.token_type = DIV;
             return tmp;
         case '>':
@@ -268,7 +268,7 @@ Token LexicalAnalyzer::GetToken()
             if (c == '=')
             {
                 if(testLexer)
-                    tmp.lexeme == ">=";
+                    tmp.lexeme = ">=";
                 tmp.token_type = GTEQ;
             }
             else
@@ -278,7 +278,7 @@ Token LexicalAnalyzer::GetToken()
                     input.UngetChar(c);
                 }
                 if(testLexer)
-                    tmp.lexeme == ">";
+                    tmp.lexeme = ">";
                 tmp.token_type = GREATER;
             }
             return tmp;
@@ -287,13 +287,13 @@ Token LexicalAnalyzer::GetToken()
             if (c == '=')
             {
                 if(testLexer)
-                    tmp.lexeme == "<=";
+                    tmp.lexeme = "<=";
                 tmp.token_type = LTEQ;
             }
             else if (c == '>')
             {
                 if(testLexer)
-                    tmp.lexeme == "<>";
+                    tmp.lexeme = "<>";
                 tmp.token_type = NOTEQUAL;
             }
             else
@@ -303,7 +303,7 @@ Token LexicalAnalyzer::GetToken()
                     input.UngetChar(c);
                 }
                 if(testLexer)
-                    tmp.lexeme == "<";
+                    tmp.lexeme = "<";
                 tmp.token_type = LESS;
             }
             return tmp;
