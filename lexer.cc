@@ -30,6 +30,9 @@ string keyword[] = {
     "WHILE", "DO", "SWITCH", "CASE"
 };
 
+bool testLexer = true;
+
+
 void Token::Print()
 {
     cout << "{" << this->lexeme << " , "
@@ -205,38 +208,102 @@ Token LexicalAnalyzer::GetToken()
     tmp.line_no = line_no;
     input.GetChar(c);
     switch (c) {
-        case ',': tmp.token_type = COMMA;       return tmp;
-        case ':': tmp.token_type = COLON;       return tmp;
-        case ';': tmp.token_type = SEMICOLON;   return tmp;
-        case '{': tmp.token_type = LBRACE;      return tmp;
-        case '}': tmp.token_type = RBRACE;      return tmp;
-        case '(': tmp.token_type = LPAREN;      return tmp;
-        case ')': tmp.token_type = RPAREN;      return tmp;
-        case '=': tmp.token_type = EQUAL;       return tmp;
-        case '+': tmp.token_type = PLUS;        return tmp;
-        case '*': tmp.token_type = MULT;        return tmp;
-        case '/': tmp.token_type = DIV;         return tmp;
+        case ',':
+            if(testLexer)
+                tmp.lexeme == ",";
+            tmp.token_type = COMMA;
+            return tmp;
+        case ':':
+            if(testLexer)
+                tmp.lexeme == ":";
+            tmp.token_type = COLON;
+            return tmp;
+        case ';':
+            if(testLexer)
+                tmp.lexeme == ";";
+            tmp.token_type = SEMICOLON;
+            return tmp;
+        case '{':
+            if(testLexer)
+                tmp.lexeme == "{";
+            tmp.token_type = LBRACE;
+            return tmp;
+        case '}':
+            if(testLexer)
+                tmp.lexeme == "}";
+            tmp.token_type = RBRACE;
+            return tmp;
+        case '(':
+            if(testLexer)
+                tmp.lexeme == "(";
+            tmp.token_type = LPAREN;
+            return tmp;
+        case ')':
+            if(testLexer)
+                tmp.lexeme == ")";
+            tmp.token_type = RPAREN;
+            return tmp;
+        case '=':
+            if(testLexer)
+                tmp.lexeme == "=";
+            tmp.token_type = EQUAL;
+            return tmp;
+        case '+':
+            if(testLexer)
+                tmp.lexeme == "+";
+            tmp.token_type = PLUS;
+            return tmp;
+        case '*':
+            if(testLexer)
+                tmp.lexeme == "*";
+            tmp.token_type = MULT;
+            return tmp;
+        case '/':
+            if(testLexer)
+                tmp.lexeme == "/";
+            tmp.token_type = DIV;
+            return tmp;
         case '>':
             input.GetChar(c);
-            if (c == '=') {
+            if (c == '=')
+            {
+                if(testLexer)
+                    tmp.lexeme == ">=";
                 tmp.token_type = GTEQ;
-            } else {
-                if (!input.EndOfInput()) {
+            }
+            else
+            {
+                if (!input.EndOfInput())
+                {
                     input.UngetChar(c);
                 }
+                if(testLexer)
+                    tmp.lexeme == ">";
                 tmp.token_type = GREATER;
             }
             return tmp;
         case '<':
             input.GetChar(c);
-            if (c == '=') {
+            if (c == '=')
+            {
+                if(testLexer)
+                    tmp.lexeme == "<=";
                 tmp.token_type = LTEQ;
-            } else if (c == '>') {
+            }
+            else if (c == '>')
+            {
+                if(testLexer)
+                    tmp.lexeme == "<>";
                 tmp.token_type = NOTEQUAL;
-            } else {
-                if (!input.EndOfInput()) {
+            }
+            else
+            {
+                if (!input.EndOfInput())
+                {
                     input.UngetChar(c);
                 }
+                if(testLexer)
+                    tmp.lexeme == "<";
                 tmp.token_type = LESS;
             }
             return tmp;

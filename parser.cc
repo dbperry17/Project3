@@ -24,6 +24,10 @@ void tester()
     }
 }
 
+/***********************
+ * Teacher's functions *
+ ***********************/
+
 void Parser::syntax_error()
 {
     cout << "Syntax Error\n";
@@ -39,15 +43,17 @@ void Parser::syntax_error(int x)
 Token Parser::expect(TokenType expected_type)
 {
     if(testParse && (expected_type != END_OF_FILE))
-        cout << "Expecting Terminal" << endl;
+        cout << "\nExpecting a Terminal" << endl;
+
+
     else if(testParse)
         cout << "End of file" << endl;
 
     Token t = lexer.GetToken();
     if (t.token_type != expected_type)
         syntax_error();
-    else if(testParse)
-        cout << " " << t.lexeme;
+    else if(testParse && (expected_type != END_OF_FILE))
+        cout << "Terminal found: " << t.lexeme << endl;
     return t;
 }
 
@@ -376,6 +382,10 @@ void Parser::parse_stmt()
     if(testParse)
         cout << "Done Parsing: " << "stmt" << endl;
 }
+
+/****************
+ * My functions *
+ ****************/
 
 //assign_stmt -> ID EQUAL expr SEMICOLON
 void Parser::parse_assign_stmt()
