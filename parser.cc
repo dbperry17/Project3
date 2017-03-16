@@ -9,8 +9,9 @@
 
 using namespace std;
 
-bool testing = true;
+bool testing = false;
 bool testParse = true;
+bool testParseAll = true;
 
 void tester()
 {
@@ -21,6 +22,7 @@ void tester()
     else
     {
         testParse = false;
+        testParseAll = false;
     }
 }
 
@@ -28,15 +30,21 @@ void tester()
  * Teacher's functions *
  ***********************/
 
+
 void Parser::syntax_error()
 {
     cout << "Syntax Error\n";
     exit(1);
 }
 
+
+//Wrote special version for testing purposes
 void Parser::syntax_error(int x)
 {
-    cout << "Syntax Error: " << x << endl;
+    if(testParse)
+        cout << "Syntax Error: " << x << endl;
+    else
+        cout << "Syntax Error\n";
     exit(1);
 }
 
@@ -79,20 +87,20 @@ void Parser::parse_program()
 
 void Parser::parse_decl()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "decl" << endl;
 
     // decl -> type_decl_section var_decl_section
     parse_type_decl_section();
     parse_var_decl_section();
 
-    if(testParse)
+    if(testParseAll)
         cout << "Done Parsing: " << "decl" << endl;
 }
 
 void Parser::parse_type_decl_section()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "decl_section" << endl;
 
     // type_decl_section -> TYPE type_decl_list
@@ -112,13 +120,13 @@ void Parser::parse_type_decl_section()
     {
         syntax_error();
     }
-    if(testParse)
+    if(testParseAll)
         cout << "Done Parsing: " << "decl_section" << endl;
 }
 
 void Parser::parse_type_decl_list()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "type_decl_list" << endl;
 
     // type_decl_list -> type_decl
@@ -139,13 +147,13 @@ void Parser::parse_type_decl_list()
         syntax_error();
     }
 
-    if(testParse)
+    if(testParseAll)
         cout << "Done Parsing: " << "type_decl_list" << endl;
 }
 
 void Parser::parse_type_decl()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "type_decl" << endl;
 
     // type_decl -> id_list COLON type_name SEMICOLON
@@ -154,13 +162,13 @@ void Parser::parse_type_decl()
     parse_type_name();
     expect(SEMICOLON);
 
-    if(testParse)
+    if(testParseAll)
         cout << "Done Parsing: " << "type_decl" << endl;
 }
 
 void Parser::parse_type_name()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "type_name" << endl;
 
     // type_name -> REAL
@@ -199,13 +207,13 @@ void Parser::parse_type_name()
         syntax_error();
     }
 
-    if(testParse)
+    if(testParseAll)
         cout << "Done Parsing: " << "type_name" << endl;
 }
 
 void Parser::parse_var_decl_section()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "var_decl_section" << endl;
 
     // var_decl_section -> VAR var_decl_list
@@ -226,14 +234,14 @@ void Parser::parse_var_decl_section()
         syntax_error();
     }
 
-    if(testParse)
+    if(testParseAll)
         cout << "Done Parsing: " << "var_decl_section" << endl;
 
 }
 
 void Parser::parse_var_decl_list()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "var_decl_list" << endl;
 
     // var_decl_list -> var_decl
@@ -254,13 +262,13 @@ void Parser::parse_var_decl_list()
         syntax_error();
     }
 
-    if(testParse)
+    if(testParseAll)
         cout << "Done Parsing: " << "var_decl_list" << endl;;
 }
 
 void Parser::parse_var_decl()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "var_decl" << endl;
 
     // var_decl -> id_list COLON type_name SEMICOLON
@@ -269,7 +277,7 @@ void Parser::parse_var_decl()
     parse_type_name();
     expect(SEMICOLON);
 
-    if(testParse)
+    if(testParseAll)
         cout << "Done Parsing: " << "var_decl" << endl;
 }
 
@@ -304,7 +312,7 @@ void Parser::parse_id_list()
 
 void Parser::parse_body()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "body" << endl;
 
     // body -> LBRACE stmt_list RBRACE
@@ -318,7 +326,7 @@ void Parser::parse_body()
 
 void Parser::parse_stmt_list()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "stmt_list" << endl;
 
     // stmt_list -> stmt
@@ -340,13 +348,13 @@ void Parser::parse_stmt_list()
         syntax_error();
     }
 
-    if(testParse)
+    if(testParseAll)
         cout << "Done Parsing: " << "stmt_list" << endl;
 }
 
 void Parser::parse_stmt()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "stmt" << endl;
 
     // stmt -> assign_stmt
@@ -379,7 +387,7 @@ void Parser::parse_stmt()
         syntax_error();
     }
 
-    if(testParse)
+    if(testParseAll)
         cout << "Done Parsing: " << "stmt" << endl;
 }
 
