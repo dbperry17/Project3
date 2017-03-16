@@ -30,7 +30,7 @@ string keyword[] = {
     "WHILE", "DO", "SWITCH", "CASE"
 };
 
-bool testLexer = true;
+bool testLexer = false;
 
 
 void Token::Print()
