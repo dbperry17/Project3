@@ -9,7 +9,7 @@
 #include <string>
 #include "lexer.h"
 
-class symTable
+class symbol
 {
 public:
     union values
@@ -61,6 +61,7 @@ class Parser {
     void parse_primary();
     void parse_relop();
     void errorCode(int cat, int spec, std::string symbol); //cat = category 1 or 2, spec = specific error
+    bool doubleChecker(symbol sym);
 
 
   public:

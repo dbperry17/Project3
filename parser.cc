@@ -26,7 +26,7 @@ void tester()
     }
 }
 
-vector<symTable> syms;
+vector<symbol> symTable;
 
 
 /***********************
@@ -728,6 +728,27 @@ void errorCode(int cat, int spec, std::string symbol)
     cout << "ERROR CODE " << cat << "." << spec << " " << symbol << endl;
     exit(1);
 }
+
+bool declCheck(symbol sym)
+{
+    bool found = false;
+
+    for(int iter = 0; iter < symTable.size(); iter++)
+    {
+        //Remember, string comparison returns 0 if strings are equal
+        if((sym.name).compare((symTable[iter]).name) == 0)
+        {
+            found = true;
+            break;
+        }
+    }
+
+    return found;
+}
+
+
+
+
 
 //Teacher's function
 void Parser::ParseInput()
