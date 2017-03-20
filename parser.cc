@@ -33,7 +33,35 @@ vector<symbol> symTable;
  * Teacher's functions *
  ***********************/
 
-
+/*
+ * program				→	decl	            body
+ * decl					→	type_decl_section	var_decl_section
+ * type_decl_section	→	TYPE            	type_decl_list
+ * type_decl_section	→	ε
+ * type_decl_list		→	type_decl	        type_decl_list
+ * type_decl_list		→	type_decl
+ * type_decl			→	id_list	COLON	    type_name       	SEMICOLON
+ * type_name			→	REAL
+ * type_name			→	INT
+ * type_name			→	BOOLEAN
+ * type_name			→	STRING
+ * type_name			→	LONG
+ * type_name			→	ID
+ * var_decl_section		→	VAR             	var_decl_list
+ * var_decl_section		→	ε
+ * var_decl_list		→	var_decl	        var_decl_list
+ * var_decl_list		→	var_decl
+ * var_decl				→	id_list	COLON	    type_name	        SEMICOLON
+ * id_list				→	ID	                COMMA	            id_list
+ * id_list				→	ID
+ * body					→	LBRACE	            stmt_list	        RBRACE
+ * stmt_list			→	stmt	            stmt_list
+ * stmt_list			→	stmt
+ * stmt					→	assign_stmt
+ * stmt					→	while_stmt
+ * stmt					→	do_stmt
+ * stmt					→	switch_stmt
+ */
 void Parser::syntax_error()
 {
     cout << "Syntax Error\n";
@@ -397,6 +425,37 @@ void Parser::parse_stmt()
 /************************
  * Functions I finished *
  ************************/
+
+
+/*
+ * assign_stmt	→	ID	        EQUAL	    expr	SEMICOLON
+ * while_stmt	→	WHILE   	condition	body
+ * do_stmt		→	DO	        body	    WHILE	condition	SEMICOLON
+ * switch_stmt	→	SWITCH  	ID	        LBRACE	case_list	RBRACE
+ * case_list	→	case	    case_list
+ * case_list	→	case
+ * case			→	CASE    	NUM     	COLON	body
+ * expr			→	term    	PLUS    	expr
+ * expr			→	term
+ * term			→	factor	    MULT	    term
+ * term			→	factor  	DIV	        term
+ * term			→	factor
+ * factor		→	LPAREN	    expr	    RPAREN
+ * factor		→	NUM
+ * factor		→	REALNUM
+ * factor		→	ID
+ * condition	→	ID
+ * condition	→	primary     relop	    primary
+ * primary		→	ID
+ * primary		→	NUM
+ * primary		→	REALNUM
+ * relop		→	GREATER
+ * relop		→	GTEQ
+ * relop		→	LESS
+ * relop		→	NOTEQUAL
+ * relop		→	LTEQ
+ */
+
 
 //assign_stmt -> ID EQUAL expr SEMICOLON
 void Parser::parse_assign_stmt()
