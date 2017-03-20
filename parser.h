@@ -9,6 +9,23 @@
 #include <string>
 #include "lexer.h"
 
+class symTable
+{
+public:
+    union values
+    {
+        double realVal;
+        int intVal;
+        bool boolVal;
+        std::string strVal;
+        long longVal;
+    } value;
+
+    std::string type[] = {"REAL", "INT", "BOOLEAN", "STRING", "LONG"};
+    std::string name;
+    int line_no; //Declaration line number
+};
+
 class Parser {
   private:
     LexicalAnalyzer lexer;
@@ -43,6 +60,8 @@ class Parser {
     void parse_condition();
     void parse_primary();
     void parse_relop();
+    void errorCode(int cat, int spec, std::string symbol); //cat = category 1 or 2, spec = specific error
+
 
   public:
     void ParseInput();

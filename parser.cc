@@ -10,8 +10,8 @@
 using namespace std;
 
 bool testing = false;
-bool testParse = true;
-bool testParseAll = true;
+bool testParse = false;
+bool testParseAll = false;
 
 void tester()
 {
@@ -25,6 +25,9 @@ void tester()
         testParseAll = false;
     }
 }
+
+vector<symTable> syms;
+
 
 /***********************
  * Teacher's functions *
@@ -391,9 +394,9 @@ void Parser::parse_stmt()
         cout << "Done Parsing: " << "stmt" << endl;
 }
 
-/****************
- * My functions *
- ****************/
+/************************
+ * Functions I finished *
+ ************************/
 
 //assign_stmt -> ID EQUAL expr SEMICOLON
 void Parser::parse_assign_stmt()
@@ -715,6 +718,18 @@ void Parser::parse_relop()
         cout << "Done Parsing: " << "relop" << endl;
 }
 
+/************************************
+ * Functions I created from scratch *
+ ************************************/
+
+//cat = category 1 or 2, spec = specific error
+void errorCode(int cat, int spec, std::string symbol)
+{
+    cout << "ERROR CODE " << cat << "." << spec << " " << symbol << endl;
+    exit(1);
+}
+
+//Teacher's function
 void Parser::ParseInput()
 {
     parse_program();
