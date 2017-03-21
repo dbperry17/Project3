@@ -9,21 +9,20 @@
 #include <string>
 #include "lexer.h"
 
-class symbol
+class Symbol
 {
 public:
-    union values
+    /*union values
     {
         double realVal;
         int intVal;
         bool boolVal;
         std::string strVal;
         long longVal;
-    } value;
+    } value;*/
 
-    std::string type[] = {"REAL", "INT", "BOOLEAN", "STRING", "LONG"};
     std::string name;
-    int line_no; //Declaration line number
+    std::string type;
 };
 
 class Parser {
@@ -34,6 +33,10 @@ class Parser {
     void syntax_error(int x);
     Token expect(TokenType expected_type);
     Token peek();
+
+    Symbol tmpSym; //mine
+    int symBegin = 0;
+    int symEnd;
 
     void parse_program();
     void parse_decl();
@@ -60,8 +63,11 @@ class Parser {
     void parse_condition();
     void parse_primary();
     void parse_relop();
+
+    //mine
     void errorCode(int cat, int spec, std::string symbol); //cat = category 1 or 2, spec = specific error
-    bool doubleChecker(symbol sym);
+    int declCheck(Symbol sym);
+    int declCheck(std::string lexeme);
 
 
   public:

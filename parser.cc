@@ -9,9 +9,10 @@
 
 using namespace std;
 
-bool testing = false;
+bool testing = true;
 bool testParse = false;
 bool testParseAll = false;
+bool testStore = true;
 
 void tester()
 {
@@ -23,10 +24,11 @@ void tester()
     {
         testParse = false;
         testParseAll = false;
+        testStore = false;
     }
 }
 
-vector<symbol> symTable;
+vector<Symbol> symTable;
 
 
 /***********************
@@ -212,31 +214,80 @@ void Parser::parse_type_name()
     if (t.token_type == REAL)
     {
         // type_name -> REAL
+        //for loop is mine
+        for(int i = symBegin; i < symEnd; i++)
+        {
+            symTable[i].type = "REAL";
+        }
+        symBegin = symEnd; //mine
     }
     else if (t.token_type == INT)
     {
         // type_name -> INT
+        //for loop is mine
+        for(int i = symBegin; i < symEnd; i++)
+        {
+            symTable[i].type = "INT";
+        }
+        symBegin = symEnd; //mine
     }
     else if (t.token_type == BOOLEAN)
     {
         // type_name -> BOOLEAN
+        //for loop is mine
+        for(int i = symBegin; i < symEnd; i++)
+        {
+            symTable[i].type = "BOOLEAN";
+        }
+        symBegin = symEnd; //mine
     }
     else if (t.token_type == STRING)
     {
         // type_name -> STRING
+        //for loop is mine
+        for(int i = symBegin; i < symEnd; i++)
+        {
+            symTable[i].type = "STRING";
+        }
+        symBegin = symEnd; //mine
     }
     else if (t.token_type == LONG)
     {
         // type_name -> LONG
+        //for loop is mine
+        for(int i = symBegin; i < symEnd; i++)
+        {
+            symTable[i].type = "LONG";
+        }
+        symBegin = symEnd; //mine
     }
     else if (t.token_type == ID)
     {
         // type_name -> ID
+
+        //everything below this line in this scope is mine
+        string x = t.lexeme;
+        int pos = declCheck(x);
+        string type;
+        if(pos != -1)
+        {
+            type = symTable[pos].type;
+        }
+        else
+            type = t.lexeme;
+
+        for(int i = symBegin; i < symEnd; i++)
+        {
+            symTable[i].type = type;
+        }
+        symBegin = symEnd;
     }
     else
     {
         syntax_error();
     }
+
+
 
     if(testParseAll)
         cout << "Done Parsing: " << "type_name" << endl;
@@ -319,8 +370,13 @@ void Parser::parse_id_list()
 
     // id_list -> ID
     // id_list -> ID COMMA id_list
+
+    Token t = peek(); //mine
+    tmpSym.name = t.lexeme; //mine
     expect(ID);
-    Token t = lexer.GetToken();
+    symTable.push_back(tmpSym); //mine; after expect(ID) to verify it's a variable
+    symEnd++; //mine
+    t = lexer.GetToken();
     if (t.token_type == COMMA)
     {
         // id_list -> ID COMMA id_list
@@ -782,30 +838,35 @@ void Parser::parse_relop()
  ************************************/
 
 //cat = category 1 or 2, spec = specific error
-void errorCode(int cat, int spec, std::string symbol)
+void Parser::errorCode(int cat, int spec, std::string symbol)
 {
     cout << "ERROR CODE " << cat << "." << spec << " " << symbol << endl;
     exit(1);
 }
 
-bool declCheck(symbol sym)
+int Parser::declCheck(Symbol sym)
 {
-    bool found = false;
+    int pos = -1;
 
     for(int iter = 0; iter < symTable.size(); iter++)
     {
         //Remember, string comparison returns 0 if strings are equal
         if((sym.name).compare((symTable[iter]).name) == 0)
         {
-            found = true;
+            pos = iter;
             break;
         }
     }
 
-    return found;
+    return pos;
 }
 
-
+int Parser::declCheck(string lexeme)
+{
+    Symbol temp;
+    temp.name = lexeme;
+    return declCheck(temp);
+}
 
 
 
@@ -816,11 +877,28 @@ void Parser::ParseInput()
     expect(END_OF_FILE);
 }
 
+void print()
+{
+    cout << "\nList of IDs:" << endl;
+    for(int i = 0; i < symTable.size(); i++)
+    {
+        cout << "Var: " << symTable[i].name << endl;
+        if(symTable[i].type.empty())
+            cout << "Type: UNKNOWN" << endl;
+        else
+            cout << "Type: " << symTable[i].type << endl;
+    }
+    cout << "End of list" << endl;
+}
+
 int main()
 {
     tester();
 
     Parser parser;
+
+    if(testStore)
+        print();
 
     parser.ParseInput();
 }
