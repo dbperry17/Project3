@@ -13,8 +13,9 @@ class Parser {
   public:
     void ParseInput();
     struct idListNode;
-    struct symbolTable;
+    struct Symbol;
     void print(idListNode *head);
+    void loadDefaultSyms();
 
   private:
 
@@ -30,7 +31,7 @@ class Parser {
     void parse_type_decl_section();
     void parse_type_decl_list();
     void parse_type_decl();
-    void parse_type_name();
+    void parse_type_name(idListNode *head, TokenType flag);
     void parse_var_decl_section();
     void parse_var_decl_list();
     void parse_var_decl();
@@ -53,8 +54,8 @@ class Parser {
 
     //mine
     void errorCode(int cat, int spec, std::string symbol); //cat = category 1 or 2, spec = specific error
-    //int declCheck(Symbol sym);
-    //int declCheck(std::string lexeme);
+    Symbol declCheck(Symbol sym);
+    bool declCheck(Token tok);
 };
 
 #endif

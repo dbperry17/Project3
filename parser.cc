@@ -34,14 +34,42 @@ struct Parser::idListNode
     idListNode *next;
 };
 
-struct Parser::symbolTable
+struct Parser::Symbol
 {
     string id;
-    bool flag; //0 for Type, 1 for Variables
+    TokenType flag;
     int type;
+    bool declared; //0 for implicit, 1 for explicit
 };
 
-Parser::symbolTable syms;
+vector<Parser::Symbol> symTable;
+int typeNum = 5;
+
+void Parser::loadDefaultSyms()
+{
+    Symbol tempSym;
+    tempSym.id = "REAL";
+    tempSym.flag = TYPE;
+    tempSym.type = 0;
+    tempSym.declared = 0; //counting defaults as implicit declarations
+    symTable.push_back(tempSym);
+
+    tempSym.id = "INT";
+    tempSym.type = 1;
+    symTable.push_back(tempSym);
+
+    tempSym.id = "BOOLEAN";
+    tempSym.type = 2;
+    symTable.push_back(tempSym);
+
+    tempSym.id = "STRING";
+    tempSym.type = 3;
+    symTable.push_back(tempSym);
+
+    tempSym.id = "LONG";
+    tempSym.type = 4;
+    symTable.push_back(tempSym);
+}
 
 /***********************
  * Teacher's functions *
@@ -124,8 +152,7 @@ void Parser::parse_program()
     if(testParse)
         cout << "\nParsing: " << "program" << endl;
 
-
-
+    loadDefaultSyms(); //my function
     // program -> decl body
     parse_decl();
     parse_body();
@@ -213,7 +240,7 @@ void Parser::parse_type_decl()
     // type_decl -> id_list COLON type_name SEMICOLON
     idListNode *head = parse_id_list();
     expect(COLON);
-    parse_type_name();
+    parse_type_name(head, TYPE);
     expect(SEMICOLON);
 
     if(testStore)
@@ -226,7 +253,7 @@ void Parser::parse_type_decl()
 //type_name	→	STRING
 //type_name	→	LONG
 //type_name	→	ID
-void Parser::parse_type_name()
+void Parser::parse_type_name(idListNode *head, TokenType flag)
 {
     if(testParseAll)
         cout << "\nParsing: " << "type_name" << endl;
@@ -261,13 +288,26 @@ void Parser::parse_type_name()
     else if (t.token_type == ID)
     {
         // type_name -> ID
+
+        //implicit declaration
+        if(declCheck(t) == -1)
+        {
+            Symbol tmp;
+            tmp.id = t.lexeme;
+            tmp.flag = flag;
+            tmp.type = typeNum;
+            symTable.push_back(tmp);
+            typeNum++;
+        }
+        else
+        {
+
+        }
     }
     else
     {
         syntax_error();
     }
-
-
 
     if(testParseAll)
         cout << "Done Parsing: " << "type_name" << endl;
@@ -341,7 +381,7 @@ void Parser::parse_var_decl()
     // var_decl -> id_list COLON type_name SEMICOLON
     idListNode *head = parse_id_list();
     expect(COLON);
-    parse_type_name();
+    parse_type_name(head, VAR);
     expect(SEMICOLON);
 
     if(testStore)
@@ -841,31 +881,41 @@ void Parser::errorCode(int cat, int spec, std::string symbol)
     exit(1);
 }
 
-/*
-int Parser::declCheck(Symbol sym)
+
+Parser::Symbol Parser::declCheck(Symbol sym)
 {
-    int pos = -1;
+    Symbol notFound;
+    notFound.id = "DNE";
+    notFound.flag = ERROR;
+    notFound.type = -1;
+    notFound.declared = 0;
 
     for(int iter = 0; iter < symTable.size(); iter++)
     {
         //Remember, string comparison returns 0 if strings are equal
-        if((sym.name).compare((symTable[iter]).name) == 0)
+        if((sym.id).compare((symTable[iter]).id) == 0)
         {
-            pos = iter;
-            break;
+            return symTable[iter];
         }
     }
 
-    return pos;
+    return notFound;
 }
 
-int Parser::declCheck(string lexeme)
+bool Parser::declCheck(Token tok)
 {
-    Symbol temp;
-    temp.name = lexeme;
-    return declCheck(temp);
+    for(int iter = 0; iter < symTable.size(); iter++)
+    {
+        //Remember, string comparison returns 0 if strings are equal
+        if((tok.lexeme).compare((symTable[iter]).id) == 0)
+        {
+            return iter;
+        }
+    }
+
+    return -1;
 }
-*/
+
 
 void Parser::print(Parser::idListNode *head)
 {
