@@ -239,6 +239,33 @@ void Parser::parse_type_decl()
 
     // type_decl -> id_list COLON type_name SEMICOLON
     idListNode *head = parse_id_list();
+
+    //check to see if any items in list are already in symbol table
+    idListNode * current = head;
+    while(current != NULL)
+    {
+        Symbol checksym = declCheck(current->id);
+        if(checksym.type != -1); //already in symbol table
+        {
+            //Checking whether it's error 1.1 or 1.2
+            if(checksym.declared)
+            {
+                //Explicit type redeclared explicitly (error code 1.1)
+                //An explicitly declared type can be declared again explicitly by
+                //appearing as part of an id_list in a type declaration.
+                errorCode(1, 1, checksym.id);
+            }
+            else
+            {
+                //Implicit type redeclared explicitly (error code 1.2)
+                //An implicitly declared type can be declared again explicitly by
+                //appearing as part of an id_list in a type declaration.
+                errorCode(1, 2, checksym.id);
+            }
+        }
+        current = current->next;
+    }
+
     expect(COLON);
     parse_type_name(head, TYPE);
     expect(SEMICOLON);
@@ -311,7 +338,7 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
         }
         else if(checkSym.flag == VAR)
         {
-            //Variable used as type: error code 2.2
+            //Variable used as a type (error code 2.2)
             //If an explicitly declared variable is used as type_name
             //in a variable declaration, the variable is used as a type.
             errorCode(2, 2, checkSym.id);
@@ -325,14 +352,12 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
     }
 
     idListNode *current = head;
-    while(current->next != NULL)
+    while(current != NULL)
     {
         tmpSym.id = current->id;
         symTable.push_back(tmpSym);
         current = current->next;
     }
-    tmpSym.id = current->id; //for final item in list
-    symTable.push_back(tmpSym); //ditto
 
 
     if(testParseAll)
@@ -406,6 +431,34 @@ void Parser::parse_var_decl()
 
     // var_decl -> id_list COLON type_name SEMICOLON
     idListNode *head = parse_id_list();
+
+    //check to see if any items in list are already in symbol table
+    idListNode *current = head;
+    while(current != NULL)
+    {
+        Symbol checksym = declCheck(current->id);
+        if(checksym.type != -1); //variable already in symbol table
+        {
+            if(checksym.flag == TYPE)
+            {
+                //Programmer-defined type redeclared as variable (error code 1.3)
+                //If a previously declared type appears again in an id_list of a
+                //variable declaration, the type is redeclared as a variable.
+                errorCode(1, 3, checksym.id);
+            }
+            else if(checksym.flag == TYPE)
+            {
+                //Variable declared more than once (error code 2.1)
+                //An explicitly declared variable can be declared again
+                //explicitly by appearing as part of an id_list in a variable
+                //declaration.
+                errorCode(2, 1, checksym.id);
+            }
+        }
+        current = current->next;
+    }
+
+
     expect(COLON);
     parse_type_name(head, VAR);
     expect(SEMICOLON);
