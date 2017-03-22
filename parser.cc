@@ -264,50 +264,76 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
     // type_name -> STRING
     // type_name -> LONG
     // type_name -> ID
-    Token t = lexer.GetToken();
-    if (t.token_type == REAL)
+    Token tok = lexer.GetToken();
+    Symbol tmpSym;
+    tmpSym.flag = flag;
+    tmpSym.declared = 1;
+    if (tok.token_type == REAL)
     {
         // type_name -> REAL
+        tmpSym.type = 0;
     }
-    else if (t.token_type == INT)
+    else if (tok.token_type == INT)
     {
         // type_name -> INT
+        tmpSym.type = 1;
     }
-    else if (t.token_type == BOOLEAN)
+    else if (tok.token_type == BOOLEAN)
     {
         // type_name -> BOOLEAN
+        tmpSym.type = 2;
     }
-    else if (t.token_type == STRING)
+    else if (tok.token_type == STRING)
     {
         // type_name -> STRING
+        tmpSym.type = 3;
     }
-    else if (t.token_type == LONG)
+    else if (tok.token_type == LONG)
     {
         // type_name -> LONG
+        tmpSym.type = 4;
     }
-    else if (t.token_type == ID)
+    else if (tok.token_type == ID)
     {
         // type_name -> ID
-
-        //implicit declaration
-        if(declCheck(t) == -1)
+        //Implicit declaration
+        Symbol checkSym = declCheck(tok.lexeme);
+        if (checkSym.type == -1)
         {
-            Symbol tmp;
-            tmp.id = t.lexeme;
-            tmp.flag = flag;
-            tmp.type = typeNum;
-            symTable.push_back(tmp);
+            //all items in id_List are of a new,
+            //implicitly declared type, so add that
+            //new type to symbol table first
+            checkSym.flag = TYPE;
+            checkSym.type = typeNum;
             typeNum++;
-        }
-        else
-        {
 
+            symTable.push_back(checkSym);
         }
+        else if(checkSym.flag == VAR)
+        {
+            //Variable used as type: error code 2.2
+            //If an explicitly declared variable is used as type_name
+            //in a variable declaration, the variable is used as a type.
+            errorCode(2, 2, checkSym.id);
+        }
+
+        tmpSym.type = checkSym.type;
     }
     else
     {
         syntax_error();
     }
+
+    idListNode *current = head;
+    while(current->next != NULL)
+    {
+        tmpSym.id = current->id;
+        symTable.push_back(tmpSym);
+        current = current->next;
+    }
+    tmpSym.id = current->id; //for final item in list
+    symTable.push_back(tmpSym); //ditto
+
 
     if(testParseAll)
         cout << "Done Parsing: " << "type_name" << endl;
@@ -882,10 +908,10 @@ void Parser::errorCode(int cat, int spec, std::string symbol)
 }
 
 
-Parser::Symbol Parser::declCheck(Symbol sym)
+Parser::Symbol Parser::declCheck(string name)
 {
     Symbol notFound;
-    notFound.id = "DNE";
+    notFound.id = name;
     notFound.flag = ERROR;
     notFound.type = -1;
     notFound.declared = 0;
@@ -893,27 +919,13 @@ Parser::Symbol Parser::declCheck(Symbol sym)
     for(int iter = 0; iter < symTable.size(); iter++)
     {
         //Remember, string comparison returns 0 if strings are equal
-        if((sym.id).compare((symTable[iter]).id) == 0)
+        if(name.compare((symTable[iter]).id) == 0)
         {
             return symTable[iter];
         }
     }
 
     return notFound;
-}
-
-bool Parser::declCheck(Token tok)
-{
-    for(int iter = 0; iter < symTable.size(); iter++)
-    {
-        //Remember, string comparison returns 0 if strings are equal
-        if((tok.lexeme).compare((symTable[iter]).id) == 0)
-        {
-            return iter;
-        }
-    }
-
-    return -1;
 }
 
 
