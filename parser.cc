@@ -28,46 +28,30 @@ void tester()
     }
 }
 
+struct Parser::idListNode
+{
+    string id;
+    idListNode *next;
+};
+
+struct Parser::symbolTable
+{
+    string id;
+    bool flag; //0 for Type, 1 for Variables
+    int type;
+};
+
+Parser::symbolTable syms;
 
 /***********************
  * Teacher's functions *
  ***********************/
 
-/*
- * program				→	decl	            body
- * decl					→	type_decl_section	var_decl_section
- * type_decl_section	→	TYPE            	type_decl_list
- * type_decl_section	→	ε
- * type_decl_list		→	type_decl	        type_decl_list
- * type_decl_list		→	type_decl
- * type_decl			→	id_list	COLON	    type_name       	SEMICOLON
- * type_name			→	REAL
- * type_name			→	INT
- * type_name			→	BOOLEAN
- * type_name			→	STRING
- * type_name			→	LONG
- * type_name			→	ID
- * var_decl_section		→	VAR             	var_decl_list
- * var_decl_section		→	ε
- * var_decl_list		→	var_decl	        var_decl_list
- * var_decl_list		→	var_decl
- * var_decl				→	id_list	COLON	    type_name	        SEMICOLON
- * id_list				→	ID	                COMMA	            id_list
- * id_list				→	ID
- * body					→	LBRACE	            stmt_list	        RBRACE
- * stmt_list			→	stmt	            stmt_list
- * stmt_list			→	stmt
- * stmt					→	assign_stmt
- * stmt					→	while_stmt
- * stmt					→	do_stmt
- * stmt					→	switch_stmt
- */
 void Parser::syntax_error()
 {
     cout << "Syntax Error\n";
     exit(1);
 }
-
 
 //Wrote special version for testing purposes
 void Parser::syntax_error(int x)
@@ -104,11 +88,44 @@ Token Parser::peek()
 }
 
 // Parsing
+/*
+ * program				→	decl	            body
+ * decl					→	type_decl_section	var_decl_section
+ * type_decl_section	→	TYPE            	type_decl_list
+ * type_decl_section	→	ε
+ * type_decl_list		→	type_decl	        type_decl_list
+ * type_decl_list		→	type_decl
+ * type_decl			→	id_list	COLON	    type_name       	SEMICOLON
+ * type_name			→	REAL
+ * type_name			→	INT
+ * type_name			→	BOOLEAN
+ * type_name			→	STRING
+ * type_name			→	LONG
+ * type_name			→	ID
+ * var_decl_section		→	VAR             	var_decl_list
+ * var_decl_section		→	ε
+ * var_decl_list		→	var_decl	        var_decl_list
+ * var_decl_list		→	var_decl
+ * var_decl				→	id_list	COLON	    type_name	        SEMICOLON
+ * id_list				→	ID	                COMMA	            id_list
+ * id_list				→	ID
+ * body					→	LBRACE	            stmt_list	        RBRACE
+ * stmt_list			→	stmt	            stmt_list
+ * stmt_list			→	stmt
+ * stmt					→	assign_stmt
+ * stmt					→	while_stmt
+ * stmt					→	do_stmt
+ * stmt					→	switch_stmt
+ */
 
+//program	→	decl	body
 void Parser::parse_program()
 {
     if(testParse)
         cout << "\nParsing: " << "program" << endl;
+
+
+
     // program -> decl body
     parse_decl();
     parse_body();
@@ -116,6 +133,7 @@ void Parser::parse_program()
         cout << "Done Parsing: " << "program" << endl;
 }
 
+//decl	→	type_decl_section	var_decl_section
 void Parser::parse_decl()
 {
     if(testParseAll)
@@ -129,10 +147,12 @@ void Parser::parse_decl()
         cout << "Done Parsing: " << "decl" << endl;
 }
 
+//type_decl_section	→	TYPE	type_decl_list
+//type_decl_section	→	ε
 void Parser::parse_type_decl_section()
 {
     if(testParseAll)
-        cout << "\nParsing: " << "decl_section" << endl;
+        cout << "\nParsing: " << "type_decl_section" << endl;
 
     // type_decl_section -> TYPE type_decl_list
     // type_decl_section -> epsilon
@@ -152,9 +172,11 @@ void Parser::parse_type_decl_section()
         syntax_error();
     }
     if(testParseAll)
-        cout << "Done Parsing: " << "decl_section" << endl;
+        cout << "Done Parsing: " << "type_decl_section" << endl;
 }
 
+//type_decl_list	→	type_decl	type_decl_list
+//type_decl_list	→	type_decl
 void Parser::parse_type_decl_list()
 {
     if(testParseAll)
@@ -182,21 +204,28 @@ void Parser::parse_type_decl_list()
         cout << "Done Parsing: " << "type_decl_list" << endl;
 }
 
+//type_decl	→	id_list	COLON	type_name	SEMICOLON
 void Parser::parse_type_decl()
 {
-    if(testParseAll)
+    if(testStore)
         cout << "\nParsing: " << "type_decl" << endl;
 
     // type_decl -> id_list COLON type_name SEMICOLON
-    parse_id_list();
+    idListNode *head = parse_id_list();
     expect(COLON);
     parse_type_name();
     expect(SEMICOLON);
 
-    if(testParseAll)
+    if(testStore)
         cout << "Done Parsing: " << "type_decl" << endl;
 }
 
+//type_name	→	REAL
+//type_name	→	INT
+//type_name	→	BOOLEAN
+//type_name	→	STRING
+//type_name	→	LONG
+//type_name	→	ID
 void Parser::parse_type_name()
 {
     if(testParseAll)
@@ -244,6 +273,8 @@ void Parser::parse_type_name()
         cout << "Done Parsing: " << "type_name" << endl;
 }
 
+//var_decl_section	→	VAR	var_decl_list
+//var_decl_section	→	ε
 void Parser::parse_var_decl_section()
 {
     if(testParseAll)
@@ -272,6 +303,8 @@ void Parser::parse_var_decl_section()
 
 }
 
+//var_decl_list	→	var_decl	var_decl_list
+//var_decl_list	→	var_decl
 void Parser::parse_var_decl_list()
 {
     if(testParseAll)
@@ -299,51 +332,62 @@ void Parser::parse_var_decl_list()
         cout << "Done Parsing: " << "var_decl_list" << endl;;
 }
 
+//var_decl	→	id_list	COLON	type_name	SEMICOLON
 void Parser::parse_var_decl()
 {
-    if(testParseAll)
+    if(testStore)
         cout << "\nParsing: " << "var_decl" << endl;
 
     // var_decl -> id_list COLON type_name SEMICOLON
-    parse_id_list();
+    idListNode *head = parse_id_list();
     expect(COLON);
     parse_type_name();
     expect(SEMICOLON);
 
-    if(testParseAll)
+    if(testStore)
         cout << "Done Parsing: " << "var_decl" << endl;
 }
 
-void Parser::parse_id_list()
+//id_list	→	ID	COMMA	id_list
+//id_list	→	ID
+Parser::idListNode* Parser::parse_id_list()
 {
-    if(testParse)
+    if(testParseAll)
         cout << "\nParsing: " << "id_list" << endl;
 
     // id_list -> ID
     // id_list -> ID COMMA id_list
-
+    Token t1 = peek();
     expect(ID);
-    Token t = lexer.GetToken();
-    if (t.token_type == COMMA)
+    Token t2 = lexer.GetToken();
+    if (t2.token_type == COMMA)
     {
         // id_list -> ID COMMA id_list
-        parse_id_list();
+        //General case
+        idListNode *result = new idListNode;
+        result->id = t1.lexeme;
+        result->next = parse_id_list();
+        return result;
     }
-    else if (t.token_type == COLON)
+    else if (t2.token_type == COLON)
     {
         // id_list -> ID
-        lexer.UngetToken(t);
+        lexer.UngetToken(t2);
+        idListNode *result = new idListNode;
+        result->id = t1.lexeme;
+        result->next = NULL;
+        return result;
     }
     else
     {
         syntax_error();
     }
 
-    if(testParse)
+    if(testParseAll)
         cout << "Done Parsing: " << "id_list" << endl;
 }
 
-
+//body	→	LBRACE	stmt_list	RBRACE
 void Parser::parse_body()
 {
     if(testParseAll)
@@ -358,6 +402,8 @@ void Parser::parse_body()
         cout << "Done Parsing: " << "body" << endl;
 }
 
+//stmt_list	→	stmt	stmt_list
+//stmt_list	→	stmt
 void Parser::parse_stmt_list()
 {
     if(testParseAll)
@@ -386,6 +432,10 @@ void Parser::parse_stmt_list()
         cout << "Done Parsing: " << "stmt_list" << endl;
 }
 
+//stmt	→	assign_stmt
+//stmt	→	while_stmt
+//stmt	→	do_stmt
+//stmt	→	switch_stmt
 void Parser::parse_stmt()
 {
     if(testParseAll)
@@ -817,6 +867,23 @@ int Parser::declCheck(string lexeme)
 }
 */
 
+void Parser::print(Parser::idListNode *head)
+{
+    if(testStore)
+    {
+        cout << "\nList of IDs:" << endl;
+        idListNode *searchNode = head;
+        while (searchNode->next != NULL)
+        {
+            cout << searchNode->id << ", ";
+            searchNode = searchNode->next;
+        }
+        cout << searchNode->id << endl;
+        cout << "End of list" << endl;
+    }
+}
+
+
 
 //Teacher's function
 void Parser::ParseInput()
@@ -824,21 +891,7 @@ void Parser::ParseInput()
     parse_program();
     expect(END_OF_FILE);
 }
-/*
-void print()
-{
-    cout << "\nList of IDs:" << endl;
-    for(int i = 0; i < symTable.size(); i++)
-    {
-        cout << "Var: " << symTable[i].name << endl;
-        if(symTable[i].type.empty())
-            cout << "Type: UNKNOWN" << endl;
-        else
-            cout << "Type: " << symTable[i].type << endl;
-    }
-    cout << "End of list" << endl;
-}
-*/
+
 int main()
 {
     tester();

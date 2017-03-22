@@ -10,14 +10,20 @@
 #include "lexer.h"
 
 class Parser {
+  public:
+    void ParseInput();
+    struct idListNode;
+    struct symbolTable;
+    void print(idListNode *head);
+
   private:
+
     LexicalAnalyzer lexer;
 
     void syntax_error();
     void syntax_error(int x);
     Token expect(TokenType expected_type);
     Token peek();
-
 
     void parse_program();
     void parse_decl();
@@ -28,7 +34,7 @@ class Parser {
     void parse_var_decl_section();
     void parse_var_decl_list();
     void parse_var_decl();
-    void parse_id_list();
+    idListNode* parse_id_list();
     void parse_body();
     void parse_stmt_list();
     void parse_stmt();
@@ -49,10 +55,6 @@ class Parser {
     void errorCode(int cat, int spec, std::string symbol); //cat = category 1 or 2, spec = specific error
     //int declCheck(Symbol sym);
     //int declCheck(std::string lexeme);
-
-
-  public:
-    void ParseInput();
 };
 
 #endif
