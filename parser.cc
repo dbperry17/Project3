@@ -28,8 +28,6 @@ void tester()
     }
 }
 
-vector<Symbol> symTable;
-
 
 /***********************
  * Teacher's functions *
@@ -214,73 +212,26 @@ void Parser::parse_type_name()
     if (t.token_type == REAL)
     {
         // type_name -> REAL
-        //for loop is mine
-        for(int i = symBegin; i < symEnd; i++)
-        {
-            symTable[i].type = "REAL";
-        }
-        symBegin = symEnd; //mine
     }
     else if (t.token_type == INT)
     {
         // type_name -> INT
-        //for loop is mine
-        for(int i = symBegin; i < symEnd; i++)
-        {
-            symTable[i].type = "INT";
-        }
-        symBegin = symEnd; //mine
     }
     else if (t.token_type == BOOLEAN)
     {
         // type_name -> BOOLEAN
-        //for loop is mine
-        for(int i = symBegin; i < symEnd; i++)
-        {
-            symTable[i].type = "BOOLEAN";
-        }
-        symBegin = symEnd; //mine
     }
     else if (t.token_type == STRING)
     {
         // type_name -> STRING
-        //for loop is mine
-        for(int i = symBegin; i < symEnd; i++)
-        {
-            symTable[i].type = "STRING";
-        }
-        symBegin = symEnd; //mine
     }
     else if (t.token_type == LONG)
     {
         // type_name -> LONG
-        //for loop is mine
-        for(int i = symBegin; i < symEnd; i++)
-        {
-            symTable[i].type = "LONG";
-        }
-        symBegin = symEnd; //mine
     }
     else if (t.token_type == ID)
     {
         // type_name -> ID
-
-        //everything below this line in this scope is mine
-        string x = t.lexeme;
-        int pos = declCheck(x);
-        string type;
-        if(pos != -1)
-        {
-            type = symTable[pos].type;
-        }
-        else
-            type = t.lexeme;
-
-        for(int i = symBegin; i < symEnd; i++)
-        {
-            symTable[i].type = type;
-        }
-        symBegin = symEnd;
     }
     else
     {
@@ -371,12 +322,8 @@ void Parser::parse_id_list()
     // id_list -> ID
     // id_list -> ID COMMA id_list
 
-    Token t = peek(); //mine
-    tmpSym.name = t.lexeme; //mine
     expect(ID);
-    symTable.push_back(tmpSym); //mine; after expect(ID) to verify it's a variable
-    symEnd++; //mine
-    t = lexer.GetToken();
+    Token t = lexer.GetToken();
     if (t.token_type == COMMA)
     {
         // id_list -> ID COMMA id_list
@@ -844,6 +791,7 @@ void Parser::errorCode(int cat, int spec, std::string symbol)
     exit(1);
 }
 
+/*
 int Parser::declCheck(Symbol sym)
 {
     int pos = -1;
@@ -867,7 +815,7 @@ int Parser::declCheck(string lexeme)
     temp.name = lexeme;
     return declCheck(temp);
 }
-
+*/
 
 
 //Teacher's function
@@ -876,7 +824,7 @@ void Parser::ParseInput()
     parse_program();
     expect(END_OF_FILE);
 }
-
+/*
 void print()
 {
     cout << "\nList of IDs:" << endl;
@@ -890,15 +838,12 @@ void print()
     }
     cout << "End of list" << endl;
 }
-
+*/
 int main()
 {
     tester();
 
     Parser parser;
-
-    if(testStore)
-        print();
 
     parser.ParseInput();
 }
