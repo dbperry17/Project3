@@ -5,14 +5,16 @@
  */
 #include <iostream>
 #include <cstdlib>
+#include <algorithm>
 #include "parser.h"
 
 using namespace std;
 
-bool testing = true;
+bool testing = false;
 bool testParse = false;
 bool testParseAll = false;
-bool testStore = true;
+bool testStore = false;
+bool testError = true;
 
 void tester()
 {
@@ -25,6 +27,7 @@ void tester()
         testParse = false;
         testParseAll = false;
         testStore = false;
+        testError = false;
     }
 }
 
@@ -40,35 +43,44 @@ struct Parser::Symbol
     TokenType flag;
     int type;
     bool declared; //0 for implicit, 1 for explicit
+    bool printed = 0;
+    int appearance;
 };
 
 vector<Parser::Symbol> symTable;
 int typeNum = 5;
+int appearance = 5;
 
 void Parser::loadDefaultSyms()
 {
     Symbol tempSym;
-    tempSym.id = "REAL";
     tempSym.flag = TYPE;
-    tempSym.type = 0;
     tempSym.declared = 0; //counting defaults as implicit declarations
+    tempSym.id = "BOOLEAN";
+    tempSym.type = 0;
+    tempSym.appearance = 0;
     symTable.push_back(tempSym);
 
     tempSym.id = "INT";
     tempSym.type = 1;
-    symTable.push_back(tempSym);
-
-    tempSym.id = "BOOLEAN";
-    tempSym.type = 2;
-    symTable.push_back(tempSym);
-
-    tempSym.id = "STRING";
-    tempSym.type = 3;
+    tempSym.appearance = 1;
     symTable.push_back(tempSym);
 
     tempSym.id = "LONG";
-    tempSym.type = 4;
+    tempSym.type = 2;
+    tempSym.appearance = 2;
     symTable.push_back(tempSym);
+
+    tempSym.id = "REAL";
+    tempSym.type = 3;
+    tempSym.appearance = 3;
+    symTable.push_back(tempSym);
+
+    tempSym.id = "STRING";
+    tempSym.type = 4;
+    tempSym.appearance = 4;
+    symTable.push_back(tempSym);
+
 }
 
 /***********************
@@ -232,6 +244,7 @@ void Parser::parse_type_decl_list()
 }
 
 //type_decl	→	id_list	COLON	type_name	SEMICOLON
+//Checks for errors 1.1 and 1.2
 void Parser::parse_type_decl()
 {
     if(testStore)
@@ -241,26 +254,38 @@ void Parser::parse_type_decl()
     idListNode *head = parse_id_list();
 
     //check to see if any items in list are already in symbol table
-    idListNode * current = head;
+    idListNode *current = head;
     while(current != NULL)
     {
-        Symbol checksym = declCheck(current->id);
-        if(checksym.type != -1); //already in symbol table
+        Symbol checkSym = declCheck(current->id);
+        if(testError)
+        {
+            cout << checkSym.id << " : ";
+            if(checkSym.flag == TYPE)
+                cout << "TYPE : ";
+            else if(checkSym.flag == VAR)
+                cout << "VAR : ";
+            else
+                cout << "ERROR : ";
+            cout << checkSym.type << " : ";
+            cout << boolalpha << checkSym.declared << endl;
+        }
+        if(checkSym.type != -1) //already in symbol table
         {
             //Checking whether it's error 1.1 or 1.2
-            if(checksym.declared)
+            if(checkSym.declared)
             {
                 //Explicit type redeclared explicitly (error code 1.1)
                 //An explicitly declared type can be declared again explicitly by
                 //appearing as part of an id_list in a type declaration.
-                errorCode(1, 1, checksym.id);
+                errorCode(1, 1, checkSym.id);
             }
             else
             {
                 //Implicit type redeclared explicitly (error code 1.2)
                 //An implicitly declared type can be declared again explicitly by
                 //appearing as part of an id_list in a type declaration.
-                errorCode(1, 2, checksym.id);
+                errorCode(1, 2, checkSym.id);
             }
         }
         current = current->next;
@@ -280,6 +305,7 @@ void Parser::parse_type_decl()
 //type_name	→	STRING
 //type_name	→	LONG
 //type_name	→	ID
+//Checks for error 2.2
 void Parser::parse_type_name(idListNode *head, TokenType flag)
 {
     if(testParseAll)
@@ -295,10 +321,12 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
     Symbol tmpSym;
     tmpSym.flag = flag;
     tmpSym.declared = 1;
+
+    //types are listed in order of how they are meant to be output
     if (tok.token_type == REAL)
     {
         // type_name -> REAL
-        tmpSym.type = 0;
+        tmpSym.type = 3;
     }
     else if (tok.token_type == INT)
     {
@@ -308,17 +336,17 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
     else if (tok.token_type == BOOLEAN)
     {
         // type_name -> BOOLEAN
-        tmpSym.type = 2;
+        tmpSym.type = 0;
     }
     else if (tok.token_type == STRING)
     {
         // type_name -> STRING
-        tmpSym.type = 3;
+        tmpSym.type = 4;
     }
     else if (tok.token_type == LONG)
     {
         // type_name -> LONG
-        tmpSym.type = 4;
+        tmpSym.type = 2;
     }
     else if (tok.token_type == ID)
     {
@@ -332,11 +360,13 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
             //new type to symbol table first
             checkSym.flag = TYPE;
             checkSym.type = typeNum;
+            checkSym.appearance = appearance;
             typeNum++;
+            appearance++;
 
             symTable.push_back(checkSym);
         }
-        else if(checkSym.flag == VAR)
+        else if((checkSym.flag == VAR) && (flag == VAR))
         {
             //Variable used as a type (error code 2.2)
             //If an explicitly declared variable is used as type_name
@@ -355,6 +385,8 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
     while(current != NULL)
     {
         tmpSym.id = current->id;
+        tmpSym.appearance = appearance;
+        appearance++;
         symTable.push_back(tmpSym);
         current = current->next;
     }
@@ -424,6 +456,7 @@ void Parser::parse_var_decl_list()
 }
 
 //var_decl	→	id_list	COLON	type_name	SEMICOLON
+//Checks for errors 1.3 and 2.1
 void Parser::parse_var_decl()
 {
     if(testStore)
@@ -437,7 +470,7 @@ void Parser::parse_var_decl()
     while(current != NULL)
     {
         Symbol checksym = declCheck(current->id);
-        if(checksym.type != -1); //variable already in symbol table
+        if(checksym.type != -1) //variable already in symbol table
         {
             if(checksym.flag == TYPE)
             {
@@ -446,7 +479,7 @@ void Parser::parse_var_decl()
                 //variable declaration, the type is redeclared as a variable.
                 errorCode(1, 3, checksym.id);
             }
-            else if(checksym.flag == TYPE)
+            else if(checksym.flag == VAR)
             {
                 //Variable declared more than once (error code 2.1)
                 //An explicitly declared variable can be declared again
@@ -981,21 +1014,90 @@ Parser::Symbol Parser::declCheck(string name)
     return notFound;
 }
 
-
-void Parser::print(Parser::idListNode *head)
+bool sorter(Parser::Symbol i, Parser::Symbol j)
 {
-    if(testStore)
+    return i.appearance < j.appearance;
+}
+
+void Parser::print()
+{
+    if(testError)
     {
         cout << "\nList of IDs:" << endl;
-        idListNode *searchNode = head;
-        while (searchNode->next != NULL)
+        cout << "NAME : FLAG : TYPE : EXPLICIT DECLARATION" << endl;
+        for (int i = 0; i < symTable.size(); i++)
         {
-            cout << searchNode->id << ", ";
-            searchNode = searchNode->next;
+            cout << symTable[i].id << " : ";
+            if (symTable[i].flag == TYPE)
+                cout << "TYPE : ";
+            else if (symTable[i].flag == VAR)
+                cout << "VAR : ";
+            else
+                cout << "ERROR : ";
+            cout << symTable[i].type << " : ";
+            cout << boolalpha << symTable[i].declared << endl;
         }
-        cout << searchNode->id << endl;
         cout << "End of list" << endl;
     }
+
+    /*
+    //From PDF file
+    for each built-in type T:
+    {
+        output T
+        output all names that are type-equivalent with T in order of their appearance
+        mark outputted names to avoid re-printing them later
+        output "#\n"
+    }
+    if there are unprinted names left:
+    {
+        for each unprinted name N in order of appearance:
+        {
+            output N
+            output all other names that are type-equivalent with N in order of their appearance
+            output "#\n"
+        }
+    }
+    */
+
+    sort(symTable.begin(), symTable.end(), sorter);
+
+    for(int i = 0; i < 5; i++)
+    {
+        cout << symTable[i].id << " ";
+        for(int j = 5; j < symTable.size(); j++)
+        {
+            if(symTable[j].type == i)
+            {
+                cout << symTable[j].id << " ";
+                symTable[j].printed = true;
+            }
+        }
+        cout << "#" << endl;
+    }
+
+    /***
+     * Pretty sure there's a problem here.
+     *
+     */
+    for(int i = 5; i < symTable.size(); i++)
+    {
+        if(!symTable[i].printed)
+        {
+            cout << symTable[i].id << " ";
+            for(int j = i; j < symTable.size(); j++) //can start with i because all priors will have gone through
+            {
+                if(symTable[j].type == i)
+                {
+                    cout << symTable[j].id << " ";
+                    symTable[j].printed = true;
+                }
+            }
+            cout << "#" << endl;
+        }
+    }
+
+
 }
 
 
@@ -1014,5 +1116,7 @@ int main()
     Parser parser;
 
     parser.ParseInput();
+
+    parser.print();
 }
 
