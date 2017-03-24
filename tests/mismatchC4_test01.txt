@@ -1,0 +1,14 @@
+TYPE
+   q, r, s: BOOLEAN;
+   u, v : LONG;
+VAR
+   a : r;
+   b : q;
+   c : u;
+   d : v;
+{
+    WHILE d {
+         c = c + d;
+    }
+}
+

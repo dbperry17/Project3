@@ -1,0 +1,7 @@
+TYPE
+    a, b, c, b : INT;
+VAR
+    x : a;
+{
+    x = 10;
+}

@@ -1,0 +1,8 @@
+TYPE
+    a : INT;
+VAR
+    x : INT;
+    b, a : STRING;
+{
+    x = 10;
+}

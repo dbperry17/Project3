@@ -1,0 +1,6 @@
+VAR
+    x100 : INT;
+    y : STRING;
+{
+    x100 = y;
+}
