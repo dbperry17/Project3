@@ -44,9 +44,9 @@ class Parser {
     void parse_switch_stmt();
     void parse_case_list();
     void parse_case();
-    void parse_expr();
-    void parse_term();
-    void parse_factor();
+    int parse_expr();
+    int parse_term();
+    int parse_factor();
     void parse_condition();
     void parse_primary();
     void parse_relop();
@@ -55,7 +55,7 @@ class Parser {
     void errorCode(int cat, int spec, std::string symbol); //cat = category 1 or 2, spec = specific error
     void typeMismatch(int lineNo, std::string constraint);
     Symbol declCheck(std::string name);
-    int unity(int typeNum1, int typeNum2);
+    int unify(int typeNum1, int typeNum2);
 };
 
 #endif

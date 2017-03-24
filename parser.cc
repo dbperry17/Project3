@@ -47,6 +47,12 @@ struct Parser::Symbol
     int appearance;
 };
 
+//So that I don't have to remember what type number each one is
+enum
+{
+    myBool = 0, myInt, myLong, myReal, myString
+};
+
 vector<Parser::Symbol> symTable;
 int typeNum = 5;
 int appearance = 5;
@@ -217,6 +223,7 @@ void Parser::parse_type_decl()
 
     //check to see if any items in list are already in symbol table
     idListNode *current = head;
+    vector<string> idVec;
     while(current != NULL)
     {
         Symbol checkSym = declCheck(current->id);
@@ -232,6 +239,7 @@ void Parser::parse_type_decl()
             cout << checkSym.type << " : ";
             cout << boolalpha << checkSym.declared << endl;
         }
+
         if(checkSym.type != -1) //already in symbol table
         {
             //Checking whether it's error 1.1 or 1.2
@@ -250,6 +258,18 @@ void Parser::parse_type_decl()
                 errorCode(1, 2, checkSym.id);
             }
         }
+
+        //check if any items in list are repeats
+        for(int iter = 0; iter < (int)idVec.size(); iter++)
+        {
+            //Remember, string comparison returns 0 if strings are equal
+            if(current->id.compare((idVec[iter])) == 0)
+            {
+                errorCode(1, 1, current->id);
+            }
+        }
+        idVec.push_back(current->id);
+
         current = current->next;
     }
 
@@ -284,31 +304,32 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
     tmpSym.flag = flag;
     tmpSym.declared = 1;
 
-    //types are listed in order of how they are meant to be output
-    if (tok.token_type == REAL)
+    //Listed in different order than in spec
+    //so as to make outputting to spec easier
+    if (tok.token_type == BOOLEAN)
     {
-        // type_name -> REAL
-        tmpSym.type = 3;
+        // type_name -> BOOLEAN
+        tmpSym.type = myBool;
     }
     else if (tok.token_type == INT)
     {
         // type_name -> INT
-        tmpSym.type = 1;
-    }
-    else if (tok.token_type == BOOLEAN)
-    {
-        // type_name -> BOOLEAN
-        tmpSym.type = 0;
-    }
-    else if (tok.token_type == STRING)
-    {
-        // type_name -> STRING
-        tmpSym.type = 4;
+        tmpSym.type = myInt;
     }
     else if (tok.token_type == LONG)
     {
         // type_name -> LONG
-        tmpSym.type = 2;
+        tmpSym.type = myLong;
+    }
+    else if (tok.token_type == REAL)
+    {
+        // type_name -> REAL
+        tmpSym.type = myReal;
+    }
+    else if (tok.token_type == STRING)
+    {
+        // type_name -> STRING
+        tmpSym.type = myString;
     }
     else if (tok.token_type == ID)
     {
@@ -436,10 +457,13 @@ void Parser::parse_var_decl()
     // var_decl -> id_list COLON type_name SEMICOLON
     idListNode *head = parse_id_list();
 
-    //check to see if any items in list are already in symbol table
+    //check to see if any items in list are already used
     idListNode *current = head;
+
+    vector<string> idVec;
     while(current != NULL)
     {
+        //check if variable is in symbol table
         Symbol checksym = declCheck(current->id);
         if(checksym.type != -1) //variable already in symbol table
         {
@@ -459,9 +483,20 @@ void Parser::parse_var_decl()
                 errorCode(2, 1, checksym.id);
             }
         }
+
+        //check if any items in list are repeats
+        for(int iter = 0; iter < (int)idVec.size(); iter++)
+        {
+            //Remember, string comparison returns 0 if strings are equal
+            if(current->id.compare((idVec[iter])) == 0)
+            {
+                errorCode(2, 1, current->id);
+            }
+        }
+        idVec.push_back(current->id);
+
         current = current->next;
     }
-
 
     expect(COLON);
     parse_type_name(head, VAR);
@@ -481,13 +516,13 @@ Parser::idListNode* Parser::parse_id_list()
     // id_list -> ID
     // id_list -> ID COMMA id_list
     Token t1 = peek();
+    idListNode *result = new idListNode;
     expect(ID);
     Token t2 = lexer.GetToken();
     if (t2.token_type == COMMA)
     {
         // id_list -> ID COMMA id_list
         //General case
-        idListNode *result = new idListNode;
         result->id = t1.lexeme;
         result->next = parse_id_list();
         return result;
@@ -496,7 +531,6 @@ Parser::idListNode* Parser::parse_id_list()
     {
         // id_list -> ID
         lexer.UngetToken(t2);
-        idListNode *result = new idListNode;
         result->id = t1.lexeme;
         result->next = NULL;
         return result;
@@ -606,7 +640,6 @@ void Parser::parse_stmt()
 }
 
 
-
 /************************
  * Functions I finished *
  ************************/
@@ -641,14 +674,27 @@ void Parser::parse_stmt()
  */
 
 //assign_stmt -> ID EQUAL expr SEMICOLON
+//checks for 1.4 error for LHS
+//checks for C! type mismatch
 void Parser::parse_assign_stmt()
 {
     if(testParse)
         cout << "\nParsing: " << "assign_stmt" << endl;
 
+
+    Token t = peek();
+    Symbol checkSym = declCheck(t.lexeme);
+
+    //Programmer-defined type used as variable (error code 1.4)
+    //If a previously declared type appears in the body of the program, the
+    //type is used as a variable.
+    if (checkSym.flag == TYPE)
+        errorCode(1, 4, checkSym.id);
+
+
     expect(ID);
     expect(EQUAL);
-    parse_expr();
+    int expType = parse_expr();
     expect(SEMICOLON);
 
     if(testParse)
@@ -686,12 +732,21 @@ void Parser::parse_do_stmt()
 }
 
 //switch_stmt -> SWITCH ID LBRACE case_list RBRACE
+//Type mismatch C5
 void Parser::parse_switch_stmt()
 {
     if(testParse)
         cout << "\nParsing: " << "switch_stmt" << endl;
-    
+
+    //type mismatch check
     expect(SWITCH);
+    Token t = peek();
+    Symbol checkSym = declCheck(t.lexeme);
+    //C5: The variable that follows the SWITCH keyword in switch_stmt should be
+    //of type INT
+    if(checkSym.type != myInt)
+        typeMismatch(t.line_no, "C5");
+
     expect(ID);
     expect(LBRACE);
     parse_case_list();
@@ -744,11 +799,10 @@ void Parser::parse_case()
 
 //expr -> term PLUS expr
 //expr -> term
-void Parser::parse_expr()
+int Parser::parse_expr()
 {
     if (testParse)
         cout << "\nParsing: " << "expr" << endl;
-
 
     parse_term();
     Token t = lexer.GetToken();
@@ -767,12 +821,14 @@ void Parser::parse_expr()
 
     if (testParse)
         cout << "Done Parsing: " << "expr" << endl;
+
+    return NULL;
 }
 
 //term -> factor MULT term
 //term -> factor DIV term
 //term -> factor
-void Parser::parse_term()
+int Parser::parse_term()
 {
     if(testParse)
         cout << "\nParsing: " << "term" << endl;
@@ -799,38 +855,44 @@ void Parser::parse_term()
 
     if(testParse)
         cout << "Done Parsing: " << "term" << endl;
+
+    return NULL;
 }
 
 //factor -> LPAREN expr RPAREN
 //factor -> NUM
 //factor -> REALNUM
 //factor -> ID
-void Parser::parse_factor()
+int Parser::parse_factor()
 {
     if(testParse)
         cout << "\nParsing: " << "factor" << endl;
 
     Token t = lexer.GetToken();
-    if(testParse)
-    {
-        cout << "Token: " << endl;
-        t.Print();
-    }
+    int typeReturn = 0;
 
     if(t.token_type == LPAREN)
     {
         //factor -> LPAREN expr RPAREN
-        parse_expr();
+        typeReturn = parse_expr();
         expect(RPAREN);
+
+        return typeReturn;
     }
     else if((t.token_type == NUM) || (t.token_type == REALNUM) || (t.token_type == ID))
     {
-        t = lexer.GetToken();
-        if(testParse)
+        if(t.token_type == NUM)
+            typeReturn = myInt;
+        else if(t.token_type == REALNUM)
+            typeReturn = myInt;
+        else if(t.token_type == ID)
         {
-            cout << "Token: " << endl;
-            t.Print();
+            Symbol checkSym = declCheck(t.lexeme);
+            if(checkSym)
         }
+
+
+        t = lexer.GetToken();
 
         if((t.token_type == MULT) || (t.token_type == DIV) ||
            (t.token_type == PLUS) || (t.token_type == SEMICOLON) ||
@@ -843,16 +905,21 @@ void Parser::parse_factor()
         }
         else
             syntax_error();
+
+        return typeReturn;
     }
     else
         syntax_error();
 
     if(testParse)
         cout << "Done Parsing: " << "factor" << endl;
+
+    return NULL;
 }
 
 //condition -> ID
 //condition -> primary relop primary
+//checks for error 1.4 and type mismatch
 void Parser::parse_condition()
 {
     if(testParse)
@@ -873,7 +940,8 @@ void Parser::parse_condition()
 
 
         if((t2.token_type == GREATER) || (t2.token_type == GTEQ) ||
-           (t2.token_type == LESS) || (t2.token_type == LTEQ) || (t2.token_type == NOTEQUAL))
+           (t2.token_type == LESS) || (t2.token_type == LTEQ) ||
+           (t2.token_type == NOTEQUAL))
         {
             //condition -> primary relop primary
             lexer.UngetToken(t);
@@ -884,6 +952,15 @@ void Parser::parse_condition()
         else if((t2.token_type == LBRACE) || (t2.token_type == SEMICOLON))
         {
             //condition -> ID
+            Symbol checkSym = declCheck(t.lexeme);
+            //Programmer-defined type used as variable (error code 1.4)
+            //If a previously declared type appears in the body of the program,
+            //the type is used as a variable.
+            if(checkSym.flag == TYPE)
+                errorCode(1, 4, checkSym.id);
+            //C4: condition should be of type BOOLEAN
+            else if(checkSym.type != myBool)
+                typeMismatch(t.line_no, "C4");
         }
         else
             syntax_error();
@@ -955,38 +1032,42 @@ void Parser::parse_relop()
  * Functions I created from scratch *
  ************************************/
 
+//Loads int, real, boolean, string, and long into symbol table
 void Parser::loadDefaultSyms()
 {
+    //Listed in different order than in spec
+    //so as to make outputting to spec easier
     Symbol tempSym;
     tempSym.flag = TYPE;
     tempSym.declared = 0; //counting defaults as implicit declarations
     tempSym.id = "BOOLEAN";
-    tempSym.type = 0;
+    tempSym.type = myBool;
     tempSym.appearance = 0;
     symTable.push_back(tempSym);
 
     tempSym.id = "INT";
-    tempSym.type = 1;
+    tempSym.type = myInt;
     tempSym.appearance = 1;
     symTable.push_back(tempSym);
 
     tempSym.id = "LONG";
-    tempSym.type = 2;
+    tempSym.type = myLong;
     tempSym.appearance = 2;
     symTable.push_back(tempSym);
 
     tempSym.id = "REAL";
-    tempSym.type = 3;
+    tempSym.type = myReal;
     tempSym.appearance = 3;
     symTable.push_back(tempSym);
 
     tempSym.id = "STRING";
-    tempSym.type = 4;
+    tempSym.type = myString;
     tempSym.appearance = 4;
     symTable.push_back(tempSym);
 
 }
 
+//outputs error code
 //cat = category 1 or 2, spec = specific error
 void Parser::errorCode(int cat, int spec, string symbol)
 {
@@ -994,12 +1075,14 @@ void Parser::errorCode(int cat, int spec, string symbol)
     exit(1);
 }
 
+//outputs type mismatch error
 void Parser::typeMismatch(int lineNo, string constraint)
 {
     cout << "TYPE MISMATCH " << lineNo << " " << constraint << endl;
     exit(1);
 }
 
+//Check to see if item is in symbol table
 Parser::Symbol Parser::declCheck(string name)
 {
     Symbol notFound;
@@ -1020,11 +1103,13 @@ Parser::Symbol Parser::declCheck(string name)
     return notFound;
 }
 
+//Sorts items in symbol table in order of appearance (for printing purposes)
 bool sorter(Parser::Symbol i, Parser::Symbol j)
 {
     return i.appearance < j.appearance;
 }
 
+//Print types and variables
 void Parser::print()
 {
     if(testError)
@@ -1082,10 +1167,7 @@ void Parser::print()
         cout << "#" << endl;
     }
 
-    /***
-     * Pretty sure there's a problem here.
-     *
-     */
+    // TODO: Fix printout error
     for(int i = 5; i < (int)symTable.size(); i++)
     {
         if(!symTable[i].printed)
@@ -1105,25 +1187,38 @@ void Parser::print()
 
 }
 
-int Parser::unity(int typeNum1, int typeNum2)
+//Determine which common type (if possible) typeNum1 and typeNum2 can be equal to
+int Parser::unify(int typeNum1, int typeNum2)
 {
-    int newType = 0;
-    //figure out which common type (if possible)
-    //typeNum1 and typeNum2 can be
-    //equal to
+    int newType;
 
-    //reflect this in the symbol table
-    //by changing typeNum1 or typeNum2
-    //everywhere to the common type
-
-    //if typeNum1 and typeNum2
-    //are different built in types
-    //(int, real, etc.)
-    // => type mismatch
+    if(typeNum1 == typeNum2) //both types are the same
+        newType = typeNum1;
+    else if((typeNum1 < 5) && (typeNum2 < 5)) //not same type, are different built-in types
+        newType = -1; //-1 for type mismatch
+    else if(typeNum1 < 5) //first is built in, second is not
+    {
+        //change all symbols of typeNum2 to that of typeNum1
+        for(int i = 0; i < (int)symTable.size(); i++)
+        {
+            if(symTable[i].type == typeNum2)
+                symTable[i].type = typeNum1;
+        }
+        newType = typeNum1;
+    }
+    else //either the second is built in and the first is not, or neither is built in
+    {
+        //change all symbols of typeNum1 to that of typeNum2
+        for(int i = 0; i < (int)symTable.size(); i++)
+        {
+            if(symTable[i].type == typeNum1)
+                symTable[i].type = typeNum2;
+        }
+        newType = typeNum2;
+    }
 
     return newType;
 }
-
 
 
 //Teacher's function
