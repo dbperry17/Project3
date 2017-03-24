@@ -51,38 +51,6 @@ vector<Parser::Symbol> symTable;
 int typeNum = 5;
 int appearance = 5;
 
-void Parser::loadDefaultSyms()
-{
-    Symbol tempSym;
-    tempSym.flag = TYPE;
-    tempSym.declared = 0; //counting defaults as implicit declarations
-    tempSym.id = "BOOLEAN";
-    tempSym.type = 0;
-    tempSym.appearance = 0;
-    symTable.push_back(tempSym);
-
-    tempSym.id = "INT";
-    tempSym.type = 1;
-    tempSym.appearance = 1;
-    symTable.push_back(tempSym);
-
-    tempSym.id = "LONG";
-    tempSym.type = 2;
-    tempSym.appearance = 2;
-    symTable.push_back(tempSym);
-
-    tempSym.id = "REAL";
-    tempSym.type = 3;
-    tempSym.appearance = 3;
-    symTable.push_back(tempSym);
-
-    tempSym.id = "STRING";
-    tempSym.type = 4;
-    tempSym.appearance = 4;
-    symTable.push_back(tempSym);
-
-}
-
 /***********************
  * Teacher's functions *
  ***********************/
@@ -90,16 +58,6 @@ void Parser::loadDefaultSyms()
 void Parser::syntax_error()
 {
     cout << "Syntax Error\n";
-    exit(1);
-}
-
-//Wrote special version for testing purposes
-void Parser::syntax_error(int x)
-{
-    if(testParse)
-        cout << "Syntax Error: " << x << endl;
-    else
-        cout << "Syntax Error\n";
     exit(1);
 }
 
@@ -242,6 +200,10 @@ void Parser::parse_type_decl_list()
     if(testParseAll)
         cout << "Done Parsing: " << "type_decl_list" << endl;
 }
+
+/***************************************
+ * Teacher's Functions that I adjusted *
+ ***************************************/
 
 //type_decl	→	id_list	COLON	type_name	SEMICOLON
 //Checks for errors 1.1 and 1.2
@@ -396,6 +358,11 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
         cout << "Done Parsing: " << "type_name" << endl;
 }
 
+
+/*******************************
+ * More of Teacher's functions *
+ *******************************/
+
 //var_decl_section	→	VAR	var_decl_list
 //var_decl_section	→	ε
 void Parser::parse_var_decl_section()
@@ -454,6 +421,10 @@ void Parser::parse_var_decl_list()
     if(testParseAll)
         cout << "Done Parsing: " << "var_decl_list" << endl;;
 }
+
+/********************************************
+ * More Teacher's Functions that I adjusted *
+ ********************************************/
 
 //var_decl	→	id_list	COLON	type_name	SEMICOLON
 //Checks for errors 1.3 and 2.1
@@ -537,7 +508,14 @@ Parser::idListNode* Parser::parse_id_list()
 
     if(testParseAll)
         cout << "Done Parsing: " << "id_list" << endl;
+
+    return NULL; //I'm tired of getting warnings when I compile
 }
+
+
+/*******************************
+ * More of Teacher's functions *
+ *******************************/
 
 //body	→	LBRACE	stmt_list	RBRACE
 void Parser::parse_body()
@@ -627,10 +605,11 @@ void Parser::parse_stmt()
         cout << "Done Parsing: " << "stmt" << endl;
 }
 
+
+
 /************************
  * Functions I finished *
  ************************/
-
 
 /*
  * assign_stmt	→	ID	        EQUAL	    expr	SEMICOLON
@@ -661,14 +640,12 @@ void Parser::parse_stmt()
  * relop		→	LTEQ
  */
 
-
 //assign_stmt -> ID EQUAL expr SEMICOLON
 void Parser::parse_assign_stmt()
 {
     if(testParse)
         cout << "\nParsing: " << "assign_stmt" << endl;
 
-    // TODO
     expect(ID);
     expect(EQUAL);
     parse_expr();
@@ -684,7 +661,6 @@ void Parser::parse_while_stmt()
     if(testParse)
         cout << "\nParsing: " << "while_stmt" << endl;
 
-    // TODO
     expect(WHILE);
     parse_condition();
     parse_body();
@@ -699,7 +675,6 @@ void Parser::parse_do_stmt()
     if(testParse)
         cout << "\nParsing: " << "do_stmt" << endl;
 
-    // TODO
     expect(DO);
     parse_body();
     expect(WHILE);
@@ -715,8 +690,7 @@ void Parser::parse_switch_stmt()
 {
     if(testParse)
         cout << "\nParsing: " << "switch_stmt" << endl;
-
-    // TODO
+    
     expect(SWITCH);
     expect(ID);
     expect(LBRACE);
@@ -734,7 +708,6 @@ void Parser::parse_case_list()
     if(testParse)
         cout << "\nParsing: " << "case_list" << endl;
 
-    // TODO
     parse_case();
     Token t = peek();
     if(t.token_type == CASE)
@@ -747,7 +720,7 @@ void Parser::parse_case_list()
         //case_list -> case
     }
     else
-        syntax_error(8);
+        syntax_error();
 
     if(testParse)
         cout << "Done Parsing: " << "case_list" << endl;
@@ -760,7 +733,6 @@ void Parser::parse_case()
     if(testParse)
         cout << "\nParsing: " << "case" << endl;
 
-    // TODO
     expect(CASE);
     expect(NUM);
     expect(COLON);
@@ -777,7 +749,7 @@ void Parser::parse_expr()
     if (testParse)
         cout << "\nParsing: " << "expr" << endl;
 
-    // TODO
+
     parse_term();
     Token t = lexer.GetToken();
     if (t.token_type == PLUS)
@@ -791,7 +763,7 @@ void Parser::parse_expr()
         lexer.UngetToken(t);
     }
     else
-        syntax_error(7);
+        syntax_error();
 
     if (testParse)
         cout << "Done Parsing: " << "expr" << endl;
@@ -805,7 +777,6 @@ void Parser::parse_term()
     if(testParse)
         cout << "\nParsing: " << "term" << endl;
 
-    // TODO
     parse_factor();
     Token t = lexer.GetToken();
     if(t.token_type == MULT)
@@ -824,7 +795,7 @@ void Parser::parse_term()
         lexer.UngetToken(t);
     }
     else
-        syntax_error(6);
+        syntax_error();
 
     if(testParse)
         cout << "Done Parsing: " << "term" << endl;
@@ -839,7 +810,6 @@ void Parser::parse_factor()
     if(testParse)
         cout << "\nParsing: " << "factor" << endl;
 
-    // TODO
     Token t = lexer.GetToken();
     if(testParse)
     {
@@ -872,10 +842,10 @@ void Parser::parse_factor()
             lexer.UngetToken(t);
         }
         else
-            syntax_error(5);
+            syntax_error();
     }
     else
-        syntax_error(4);
+        syntax_error();
 
     if(testParse)
         cout << "Done Parsing: " << "factor" << endl;
@@ -888,7 +858,6 @@ void Parser::parse_condition()
     if(testParse)
         cout << "\nParsing: " << "condition" << endl;
 
-    // TODO
     Token t = lexer.GetToken();
     if((t.token_type == NUM) || (t.token_type == REALNUM))
     {
@@ -917,10 +886,10 @@ void Parser::parse_condition()
             //condition -> ID
         }
         else
-            syntax_error(3);
+            syntax_error();
     }
     else
-        syntax_error(2);
+        syntax_error();
 
     if(testParse)
         cout << "Done Parsing: " << "condition" << endl;
@@ -934,7 +903,6 @@ void Parser::parse_primary()
     if(testParse)
         cout << "\nParsing: " << "primary" << endl;
 
-    // TODO
     Token t = lexer.GetToken();
     if(testParse)
     {
@@ -948,7 +916,7 @@ void Parser::parse_primary()
         //primary -> REALNUM
     }
     else
-        syntax_error(1);
+        syntax_error();
 
     if(testParse)
         cout << "Done Parsing: " << "primary" << endl;
@@ -964,7 +932,6 @@ void Parser::parse_relop()
     if(testParse)
         cout << "\nParsing: " << "relop" << endl;
 
-    // TODO
     Token t = lexer.GetToken();
     if((t.token_type == GREATER) || (t.token_type == GTEQ) ||
        (t.token_type == LESS) || (t.token_type == LTEQ) || (t.token_type == NOTEQUAL))
@@ -976,23 +943,62 @@ void Parser::parse_relop()
         //relop-> LTEQ
     }
     else
-        syntax_error(0);
+        syntax_error();
 
     if(testParse)
         cout << "Done Parsing: " << "relop" << endl;
 }
 
+
+
 /************************************
  * Functions I created from scratch *
  ************************************/
 
+void Parser::loadDefaultSyms()
+{
+    Symbol tempSym;
+    tempSym.flag = TYPE;
+    tempSym.declared = 0; //counting defaults as implicit declarations
+    tempSym.id = "BOOLEAN";
+    tempSym.type = 0;
+    tempSym.appearance = 0;
+    symTable.push_back(tempSym);
+
+    tempSym.id = "INT";
+    tempSym.type = 1;
+    tempSym.appearance = 1;
+    symTable.push_back(tempSym);
+
+    tempSym.id = "LONG";
+    tempSym.type = 2;
+    tempSym.appearance = 2;
+    symTable.push_back(tempSym);
+
+    tempSym.id = "REAL";
+    tempSym.type = 3;
+    tempSym.appearance = 3;
+    symTable.push_back(tempSym);
+
+    tempSym.id = "STRING";
+    tempSym.type = 4;
+    tempSym.appearance = 4;
+    symTable.push_back(tempSym);
+
+}
+
 //cat = category 1 or 2, spec = specific error
-void Parser::errorCode(int cat, int spec, std::string symbol)
+void Parser::errorCode(int cat, int spec, string symbol)
 {
     cout << "ERROR CODE " << cat << "." << spec << " " << symbol << endl;
     exit(1);
 }
 
+void Parser::typeMismatch(int lineNo, string constraint)
+{
+    cout << "TYPE MISMATCH " << lineNo << " " << constraint << endl;
+    exit(1);
+}
 
 Parser::Symbol Parser::declCheck(string name)
 {
@@ -1002,7 +1008,7 @@ Parser::Symbol Parser::declCheck(string name)
     notFound.type = -1;
     notFound.declared = 0;
 
-    for(int iter = 0; iter < symTable.size(); iter++)
+    for(int iter = 0; iter < (int)symTable.size(); iter++)
     {
         //Remember, string comparison returns 0 if strings are equal
         if(name.compare((symTable[iter]).id) == 0)
@@ -1025,7 +1031,7 @@ void Parser::print()
     {
         cout << "\nList of IDs:" << endl;
         cout << "NAME : FLAG : TYPE : EXPLICIT DECLARATION" << endl;
-        for (int i = 0; i < symTable.size(); i++)
+        for (int i = 0; i < (int)symTable.size(); i++)
         {
             cout << symTable[i].id << " : ";
             if (symTable[i].flag == TYPE)
@@ -1065,7 +1071,7 @@ void Parser::print()
     for(int i = 0; i < 5; i++)
     {
         cout << symTable[i].id << " ";
-        for(int j = 5; j < symTable.size(); j++)
+        for(int j = 5; j < (int)symTable.size(); j++)
         {
             if(symTable[j].type == i)
             {
@@ -1080,12 +1086,12 @@ void Parser::print()
      * Pretty sure there's a problem here.
      *
      */
-    for(int i = 5; i < symTable.size(); i++)
+    for(int i = 5; i < (int)symTable.size(); i++)
     {
         if(!symTable[i].printed)
         {
             cout << symTable[i].id << " ";
-            for(int j = i; j < symTable.size(); j++) //can start with i because all priors will have gone through
+            for(int j = i; j < (int)symTable.size(); j++) //can start with i because all priors will have gone through
             {
                 if(symTable[j].type == i)
                 {
@@ -1097,7 +1103,25 @@ void Parser::print()
         }
     }
 
+}
 
+int Parser::unity(int typeNum1, int typeNum2)
+{
+    int newType = 0;
+    //figure out which common type (if possible)
+    //typeNum1 and typeNum2 can be
+    //equal to
+
+    //reflect this in the symbol table
+    //by changing typeNum1 or typeNum2
+    //everywhere to the common type
+
+    //if typeNum1 and typeNum2
+    //are different built in types
+    //(int, real, etc.)
+    // => type mismatch
+
+    return newType;
 }
 
 

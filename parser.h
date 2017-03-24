@@ -22,7 +22,6 @@ class Parser {
     LexicalAnalyzer lexer;
 
     void syntax_error();
-    void syntax_error(int x);
     Token expect(TokenType expected_type);
     Token peek();
 
@@ -54,7 +53,9 @@ class Parser {
 
     //mine
     void errorCode(int cat, int spec, std::string symbol); //cat = category 1 or 2, spec = specific error
+    void typeMismatch(int lineNo, std::string constraint);
     Symbol declCheck(std::string name);
+    int unity(int typeNum1, int typeNum2);
 };
 
 #endif
