@@ -30,7 +30,7 @@ class Parser {
     void parse_type_decl_section();
     void parse_type_decl_list();
     void parse_type_decl();
-    void parse_type_name(idListNode *nodes, TokenType flag);
+    int parse_type_name(TokenType flag);
     void parse_var_decl_section();
     void parse_var_decl_list();
     void parse_var_decl();

@@ -14,7 +14,7 @@ bool testing = false;
 bool testParse = false;
 bool testParseAll = false;
 bool testStore = false;
-bool testError = true;
+bool testPrint = true;
 
 void tester()
 {
@@ -27,7 +27,7 @@ void tester()
         testParse = false;
         testParseAll = false;
         testStore = false;
-        testError = false;
+        testPrint = false;
     }
 }
 
@@ -44,7 +44,6 @@ struct Parser::Symbol
     int type;
     bool declared; //0 for implicit, 1 for explicit
     bool printed = 0;
-    int appearance;
 };
 
 //So that I don't have to remember what type number each one is
@@ -55,7 +54,19 @@ enum
 
 vector<Parser::Symbol> symTable;
 int typeNum = 5;
-int appearance = 5;
+
+/****
+ *  NOTE: While dealing with testing for 1.4 errors
+ *  I realized it would probably be more practical
+ *  to make a function.
+ *
+ *  I decided against it because I was almost done
+ *  pasting the code into the relevant functions,
+ *  and I didn't want to redo stuff just for an
+ *  asthetic difference
+ */
+
+
 
 /***********************
  * Teacher's functions *
@@ -224,21 +235,13 @@ void Parser::parse_type_decl()
     //check to see if any items in list are already in symbol table
     idListNode *current = head;
     vector<string> idVec;
+    Symbol tmpSym;
+    tmpSym.type = -2; //to make changing easier;
+    tmpSym.flag = TYPE;
+    tmpSym.declared = 1;
     while(current != NULL)
     {
         Symbol checkSym = declCheck(current->id);
-        if(testError)
-        {
-            cout << checkSym.id << " : ";
-            if(checkSym.flag == TYPE)
-                cout << "TYPE : ";
-            else if(checkSym.flag == VAR)
-                cout << "VAR : ";
-            else
-                cout << "ERROR : ";
-            cout << checkSym.type << " : ";
-            cout << boolalpha << checkSym.declared << endl;
-        }
 
         if(checkSym.type != -1) //already in symbol table
         {
@@ -270,11 +273,22 @@ void Parser::parse_type_decl()
         }
         idVec.push_back(current->id);
 
+        //putting variables in symbol table
+        tmpSym.id = current->id;
+        symTable.push_back(tmpSym);
+
         current = current->next;
     }
 
     expect(COLON);
-    parse_type_name(head, TYPE);
+    int type = parse_type_name(TYPE);
+
+    for(int i = 5; i < (int)symTable.size(); i++)
+    {
+        if(symTable[i].type == -2)
+            symTable[i].type = type;
+    }
+
     expect(SEMICOLON);
 
     if(testStore)
@@ -288,7 +302,7 @@ void Parser::parse_type_decl()
 //type_name	→	LONG
 //type_name	→	ID
 //Checks for error 2.2
-void Parser::parse_type_name(idListNode *head, TokenType flag)
+int Parser::parse_type_name(TokenType flag)
 {
     if(testParseAll)
         cout << "\nParsing: " << "type_name" << endl;
@@ -300,42 +314,40 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
     // type_name -> LONG
     // type_name -> ID
     Token tok = lexer.GetToken();
-    Symbol tmpSym;
-    tmpSym.flag = flag;
-    tmpSym.declared = 1;
+
 
     //Listed in different order than in spec
     //so as to make outputting to spec easier
     if (tok.token_type == BOOLEAN)
     {
         // type_name -> BOOLEAN
-        tmpSym.type = myBool;
+        return myBool;
     }
     else if (tok.token_type == INT)
     {
         // type_name -> INT
-        tmpSym.type = myInt;
+        return myInt;
     }
     else if (tok.token_type == LONG)
     {
         // type_name -> LONG
-        tmpSym.type = myLong;
+        return myLong;
     }
     else if (tok.token_type == REAL)
     {
         // type_name -> REAL
-        tmpSym.type = myReal;
+        return myReal;
     }
     else if (tok.token_type == STRING)
     {
         // type_name -> STRING
-        tmpSym.type = myString;
+        return myString;
     }
     else if (tok.token_type == ID)
     {
         // type_name -> ID
-        //Implicit declaration
         Symbol checkSym = declCheck(tok.lexeme);
+        //Implicit declaration
         if (checkSym.type == -1)
         {
             //all items in id_List are of a new,
@@ -343,9 +355,7 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
             //new type to symbol table first
             checkSym.flag = TYPE;
             checkSym.type = typeNum;
-            checkSym.appearance = appearance;
             typeNum++;
-            appearance++;
 
             symTable.push_back(checkSym);
         }
@@ -357,26 +367,17 @@ void Parser::parse_type_name(idListNode *head, TokenType flag)
             errorCode(2, 2, checkSym.id);
         }
 
-        tmpSym.type = checkSym.type;
+        return checkSym.type;
     }
     else
     {
         syntax_error();
     }
 
-    idListNode *current = head;
-    while(current != NULL)
-    {
-        tmpSym.id = current->id;
-        tmpSym.appearance = appearance;
-        appearance++;
-        symTable.push_back(tmpSym);
-        current = current->next;
-    }
-
-
     if(testParseAll)
         cout << "Done Parsing: " << "type_name" << endl;
+
+    return -1;
 }
 
 
@@ -461,6 +462,10 @@ void Parser::parse_var_decl()
     idListNode *current = head;
 
     vector<string> idVec;
+    Symbol tmpSym;
+    tmpSym.type = -2; //to make changing easier;
+    tmpSym.flag = VAR;
+    tmpSym.declared = 1;
     while(current != NULL)
     {
         //check if variable is in symbol table
@@ -495,11 +500,22 @@ void Parser::parse_var_decl()
         }
         idVec.push_back(current->id);
 
+        //putting variables in symbol table
+        tmpSym.id = current->id;
+        symTable.push_back(tmpSym);
+
         current = current->next;
     }
 
     expect(COLON);
-    parse_type_name(head, VAR);
+
+    int type = parse_type_name(VAR);
+
+    for(int i = 5; i < (int)symTable.size(); i++)
+    {
+        if(symTable[i].type == -2)
+            symTable[i].type = type;
+    }
     expect(SEMICOLON);
 
     if(testStore)
@@ -694,7 +710,8 @@ void Parser::parse_assign_stmt()
 
     expect(ID);
     expect(EQUAL);
-    int expType = parse_expr();
+    //int expType =
+    parse_expr();
     expect(SEMICOLON);
 
     if(testParse)
@@ -822,7 +839,7 @@ int Parser::parse_expr()
     if (testParse)
         cout << "Done Parsing: " << "expr" << endl;
 
-    return NULL;
+    return -1;
 }
 
 //term -> factor MULT term
@@ -856,7 +873,7 @@ int Parser::parse_term()
     if(testParse)
         cout << "Done Parsing: " << "term" << endl;
 
-    return NULL;
+    return -1;
 }
 
 //factor -> LPAREN expr RPAREN
@@ -869,7 +886,7 @@ int Parser::parse_factor()
         cout << "\nParsing: " << "factor" << endl;
 
     Token t = lexer.GetToken();
-    int typeReturn = 0;
+    int typeReturn = -1;
 
     if(t.token_type == LPAREN)
     {
@@ -884,11 +901,23 @@ int Parser::parse_factor()
         if(t.token_type == NUM)
             typeReturn = myInt;
         else if(t.token_type == REALNUM)
-            typeReturn = myInt;
+            typeReturn = myReal;
         else if(t.token_type == ID)
         {
             Symbol checkSym = declCheck(t.lexeme);
-            if(checkSym)
+            //Programmer-defined type used as variable (error code 1.4)
+            //If a previously declared type appears in the body of the
+            //program, the type is used as a variable.
+            if(checkSym.flag == TYPE)
+                errorCode(1, 4, checkSym.id);
+            if(checkSym.type == -1)
+            {
+                checkSym.flag = VAR;
+                checkSym.type = typeNum;
+                typeNum++;
+            }
+
+            symTable.push_back(checkSym);
         }
 
 
@@ -914,7 +943,7 @@ int Parser::parse_factor()
     if(testParse)
         cout << "Done Parsing: " << "factor" << endl;
 
-    return NULL;
+    return -1;
 }
 
 //condition -> ID
@@ -935,9 +964,7 @@ void Parser::parse_condition()
     }
     else if(t.token_type == ID)
     {
-
         Token t2 = peek();
-
 
         if((t2.token_type == GREATER) || (t2.token_type == GTEQ) ||
            (t2.token_type == LESS) || (t2.token_type == LTEQ) ||
@@ -961,6 +988,14 @@ void Parser::parse_condition()
             //C4: condition should be of type BOOLEAN
             else if(checkSym.type != myBool)
                 typeMismatch(t.line_no, "C4");
+            else if(checkSym.type == -1)
+            {
+                checkSym.flag = VAR;
+                checkSym.type = typeNum;
+                typeNum++;
+            }
+
+            symTable.push_back(checkSym);
         }
         else
             syntax_error();
@@ -989,6 +1024,23 @@ void Parser::parse_primary()
     if((t.token_type == ID) || (t.token_type == NUM) || (t.token_type == REALNUM))
     {
         //primary -> ID
+        if(t.token_type == ID)
+        {
+            Symbol checkSym = declCheck(t.lexeme);
+            //Programmer-defined type used as variable (error code 1.4)
+            //If a previously declared type appears in the body of the
+            //program, the type is used as a variable.
+            if(checkSym.flag == TYPE)
+                errorCode(1, 4, checkSym.id);
+            if(checkSym.type == -1)
+            {
+                checkSym.flag = VAR;
+                checkSym.type = typeNum;
+                typeNum++;
+            }
+
+            symTable.push_back(checkSym);
+        }
         //primary -> NUM
         //primary -> REALNUM
     }
@@ -1042,27 +1094,22 @@ void Parser::loadDefaultSyms()
     tempSym.declared = 0; //counting defaults as implicit declarations
     tempSym.id = "BOOLEAN";
     tempSym.type = myBool;
-    tempSym.appearance = 0;
     symTable.push_back(tempSym);
 
     tempSym.id = "INT";
     tempSym.type = myInt;
-    tempSym.appearance = 1;
     symTable.push_back(tempSym);
 
     tempSym.id = "LONG";
     tempSym.type = myLong;
-    tempSym.appearance = 2;
     symTable.push_back(tempSym);
 
     tempSym.id = "REAL";
     tempSym.type = myReal;
-    tempSym.appearance = 3;
     symTable.push_back(tempSym);
 
     tempSym.id = "STRING";
     tempSym.type = myString;
-    tempSym.appearance = 4;
     symTable.push_back(tempSym);
 
 }
@@ -1103,32 +1150,32 @@ Parser::Symbol Parser::declCheck(string name)
     return notFound;
 }
 
-//Sorts items in symbol table in order of appearance (for printing purposes)
-bool sorter(Parser::Symbol i, Parser::Symbol j)
-{
-    return i.appearance < j.appearance;
-}
 
 //Print types and variables
 void Parser::print()
 {
-    if(testError)
+    if(testPrint)
     {
         cout << "\nList of IDs:" << endl;
-        cout << "NAME : FLAG : TYPE : EXPLICIT DECLARATION" << endl;
+        cout << "NAME \t\tFLAG \tTYPE \tEXP_DECL" << endl;
         for (int i = 0; i < (int)symTable.size(); i++)
         {
-            cout << symTable[i].id << " : ";
-            if (symTable[i].flag == TYPE)
-                cout << "TYPE : ";
-            else if (symTable[i].flag == VAR)
-                cout << "VAR : ";
+            if((i == myBool))
+                cout << symTable[i].id << " \t";
             else
-                cout << "ERROR : ";
-            cout << symTable[i].type << " : ";
+                cout << symTable[i].id << " \t\t";
+
+            if (symTable[i].flag == TYPE)
+                cout << "TYPE \t";
+            else if (symTable[i].flag == VAR)
+                cout << "VAR \t";
+            else
+                cout << "ERROR :\t";
+            cout << symTable[i].type << " \t";
             cout << boolalpha << symTable[i].declared << endl;
+
         }
-        cout << "End of list" << endl;
+        cout << "End of list\n" << endl;
     }
 
     /*
@@ -1151,8 +1198,6 @@ void Parser::print()
     }
     */
 
-    sort(symTable.begin(), symTable.end(), sorter);
-
     for(int i = 0; i < 5; i++)
     {
         cout << symTable[i].id << " ";
@@ -1167,12 +1212,11 @@ void Parser::print()
         cout << "#" << endl;
     }
 
-    // TODO: Fix printout error
     for(int i = 5; i < (int)symTable.size(); i++)
     {
         if(!symTable[i].printed)
         {
-            cout << symTable[i].id << " ";
+            //cout << symTable[i].id << " ";
             for(int j = i; j < (int)symTable.size(); j++) //can start with i because all priors will have gone through
             {
                 if(symTable[j].type == i)
