@@ -47,7 +47,7 @@ class Parser {
     int parse_expr();
     int parse_term();
     int parse_factor();
-    void parse_condition();
+    int parse_condition();
     int parse_primary();
     void parse_relop();
 

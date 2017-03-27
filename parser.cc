@@ -736,13 +736,20 @@ void Parser::parse_assign_stmt()
 }
 
 //while_stmt -> WHILE condition body
+//checks for C4 type mismatch
 void Parser::parse_while_stmt()
 {
     if(testParse)
         cout << "\nParsing: " << "while_stmt" << endl;
 
     expect(WHILE);
-    parse_condition();
+
+    Token t = peek(); //to get the line number
+    int x = parse_condition();
+    //C4: condition should be of type BOOLEAN
+    if(x != myBool)
+        typeMismatch(t.line_no, "C4");
+
     parse_body();
 
     if(testParse)
@@ -750,6 +757,7 @@ void Parser::parse_while_stmt()
 }
 
 //do_stmt -> DO body WHILE condition SEMICOLON
+//checks for C4 type mismatch
 void Parser::parse_do_stmt()
 {
     if(testParse)
@@ -758,7 +766,13 @@ void Parser::parse_do_stmt()
     expect(DO);
     parse_body();
     expect(WHILE);
-    parse_condition();
+
+    Token t = peek(); //to get the line number
+    int x = parse_condition();
+    //C4: condition should be of type BOOLEAN
+    if(x != myBool)
+        typeMismatch(t.line_no, "C4");
+
     expect(SEMICOLON);
 
     if(testParse)
@@ -766,7 +780,7 @@ void Parser::parse_do_stmt()
 }
 
 //switch_stmt -> SWITCH ID LBRACE case_list RBRACE
-//Type mismatch C5
+//checks for C5 type mismatch
 void Parser::parse_switch_stmt()
 {
     if(testParse)
@@ -774,29 +788,27 @@ void Parser::parse_switch_stmt()
 
     //type mismatch check
     expect(SWITCH);
-    Token t = peek();
-    if(testMatch)
-        cout << "t.lexeme = " << t.lexeme << endl;
-    Symbol checkSym = declCheck(t.lexeme);
-    if(testMatch)
-        cout << "Type = " << checkSym.type << endl;
 
-    if(checkSym.type == -1) //symbol has been implicitly declared as int
+    Token t = lexer.GetToken();
+    if(t.token_type == ID)
     {
-        checkSym.type = myInt;
-        checkSym.flag = VAR;
-        symTable.push_back(checkSym);
-    }
-    else if(checkSym.type > 4) //symbol is of unknown type
-        unify(checkSym.type, myInt);
-    else if(checkSym.type != myInt)
-    {
-        //C5: The variable that follows the SWITCH keyword in switch_stmt should be
-        //of type INT
-        typeMismatch(t.line_no, "C5");
+        Symbol checkSym = declCheck(t.lexeme);
+        if (checkSym.type == -1) //symbol has been implicitly declared as INT
+        {
+            checkSym.type = myInt;
+            checkSym.flag = VAR;
+            symTable.push_back(checkSym);
+        }
+        else if (checkSym.type > 4) //symbol is of unknown type that is equivalent to INT
+            unify(checkSym.type, myInt);
+        else if (checkSym.type != myInt) //Symbol is built-in type that is not an INT.
+        {
+            //C5: The variable that follows the SWITCH keyword in switch_stmt should be
+            //of type INT
+            typeMismatch(t.line_no, "C5");
+        }
     }
 
-    expect(ID);
     expect(LBRACE);
     parse_case_list();
     expect(RBRACE);
@@ -848,6 +860,7 @@ void Parser::parse_case()
 
 //expr -> term PLUS expr
 //expr -> term
+//checks for C2 type mismatch
 int Parser::parse_expr()
 {
     if (testParse)
@@ -861,7 +874,7 @@ int Parser::parse_expr()
         //expr -> term PLUS expr
         int y = parse_expr();
         int z = unify(x, y);
-        //C2: The operands of an operation ( PLUS , MINUS , MULT , and DIV )
+        //C2: The operands of an operation ( PLUS , MULT , and DIV )
         //should have the same type (it can be any type, including STRING and
         //BOOLEAN )
         if(z == -1)
@@ -887,6 +900,7 @@ int Parser::parse_expr()
 //term -> factor MULT term
 //term -> factor DIV term
 //term -> factor
+//checks for C2 type mismatch
 int Parser::parse_term()
 {
     if(testParse)
@@ -897,9 +911,10 @@ int Parser::parse_term()
     if((t.token_type == MULT) || (t.token_type == DIV))
     {
         //term -> factor MULT term
+        //term -> factor DIV term
         int y = parse_term();
         int z = unify(x, y);
-        //C2: The operands of an operation ( PLUS , MINUS , MULT , and DIV )
+        //C2: The operands of an operation ( PLUS , MULT , and DIV )
         //should have the same type (it can be any type, including STRING and
         //BOOLEAN )
         if(z == -1)
@@ -992,8 +1007,9 @@ int Parser::parse_factor()
 
 //condition -> ID
 //condition -> primary relop primary
-//checks for error 1.4 and type mismatch
-void Parser::parse_condition()
+//checks for error 1.4
+//checks for C3 type mismatch
+int Parser::parse_condition()
 {
     if(testParse)
         cout << "\nParsing: " << "condition" << endl;
@@ -1002,16 +1018,20 @@ void Parser::parse_condition()
     if((t.token_type == NUM) || (t.token_type == REALNUM))
     {
         //condition -> primary relop primary
-        int x = parse_primary();
+        int x;
+        if(t.token_type == NUM)
+            x = myInt;
+        else
+            x = myReal;
         parse_relop();
         int y = parse_primary();
         //C3: The operands of a relational operator (see relop in
         //grammar) should have the same type (it can be any type,
         //including STRING and BOOLEAN )
         if(unify(x, y) == -1)
-        {
             typeMismatch(t.line_no, "C3");
-        }
+        else
+            return myBool;
     }
     else if(t.token_type == ID)
     {
@@ -1023,29 +1043,16 @@ void Parser::parse_condition()
             //condition -> primary relop primary
             lexer.UngetToken(t);
             int x = parse_primary();
-            if(testMatch)
-            {
-                cout << "Relop: " << t2.lexeme << endl;
-            }
             parse_relop();
             int y = parse_primary();
-            if(testMatch)
-            {
-                cout << "x: " << x << endl;
-                cout << "y: " << y << endl;
-            }
             //C3: The operands of a relational operator (see relop in
             //grammar) should have the same type (it can be any type,
             //including STRING and BOOLEAN )
             int z = unify(x, y);
-            if(testMatch)
-            {
-                cout << "z: " << z << endl;
-            }
             if(z == -1)
-            {
                 typeMismatch(t.line_no, "C3");
-            }
+            else
+                return myBool;
         }
         else if((t2.token_type == LBRACE) || (t2.token_type == SEMICOLON))
         {
@@ -1056,16 +1063,17 @@ void Parser::parse_condition()
             //the type is used as a variable.
             if(checkSym.flag == TYPE)
                 errorCode(1, 4, checkSym.id);
-            //C4: condition should be of type BOOLEAN
-            else if(checkSym.type != myBool)
-                typeMismatch(t.line_no, "C4");
-            else if(checkSym.type == -1)
+            else if(checkSym.type == -1) //Boolean implicitly declared
             {
                 checkSym.flag = VAR;
-                checkSym.type = typeNum;
-                typeNum++;
+                checkSym.type = myBool;
                 symTable.push_back(checkSym);
+                return myBool;
             }
+            else if(checkSym.type == myBool)
+                return myBool;
+            else
+                return  -1;
         }
         else
             syntax_error();
@@ -1075,6 +1083,8 @@ void Parser::parse_condition()
 
     if(testParse)
         cout << "Done Parsing: " << "condition" << endl;
+
+    return -1;
 }
 
 //primary -> ID
@@ -1086,11 +1096,6 @@ int Parser::parse_primary()
         cout << "\nParsing: " << "primary" << endl;
 
     Token t = lexer.GetToken();
-    if(testMatch)
-    {
-        cout << "lexeme: " << t.lexeme << endl;
-        cout << "type: " << t.token_type << endl;
-    }
     if((t.token_type == ID) || (t.token_type == NUM) || (t.token_type == REALNUM))
     {
         //primary -> ID
