@@ -779,7 +779,10 @@ void Parser::parse_switch_stmt()
     //C5: The variable that follows the SWITCH keyword in switch_stmt should be
     //of type INT
     if((checkSym.type != myInt) && (checkSym.type < 5))
+    {
+        //Todo: Why does this break parsing?
         typeMismatch(t.line_no, "C5");
+    }
     else if(checkSym.type > 4) //symbol is of unknown type
        unify(checkSym.type, myInt);
     else if(checkSym.type == -1) //symbol has been implicitly declared as int
