@@ -56,6 +56,7 @@ enum
 
 vector<Parser::Symbol> symTable;
 int typeNum = 5;
+bool mismatchFound = false;
 
 /****
  *  NOTE: While dealing with testing for 1.4 errors
@@ -775,21 +776,25 @@ void Parser::parse_switch_stmt()
     //type mismatch check
     expect(SWITCH);
     Token t = peek();
+    if(testMatch)
+        cout << "t.lexeme = " << t.lexeme << endl;
     Symbol checkSym = declCheck(t.lexeme);
-    //C5: The variable that follows the SWITCH keyword in switch_stmt should be
-    //of type INT
-    if((checkSym.type != myInt) && (checkSym.type < 5))
-    {
-        //Todo: Why does this break parsing?
-        typeMismatch(t.line_no, "C5");
-    }
-    else if(checkSym.type > 4) //symbol is of unknown type
-       unify(checkSym.type, myInt);
-    else if(checkSym.type == -1) //symbol has been implicitly declared as int
+    if(testMatch)
+        cout << "Type = " << checkSym.type << endl;
+
+    if(checkSym.type == -1) //symbol has been implicitly declared as int
     {
         checkSym.type = myInt;
         checkSym.flag = VAR;
         symTable.push_back(checkSym);
+    }
+    else if(checkSym.type > 4) //symbol is of unknown type
+        unify(checkSym.type, myInt);
+    else if(checkSym.type != myInt)
+    {
+        //C5: The variable that follows the SWITCH keyword in switch_stmt should be
+        //of type INT
+        typeMismatch(t.line_no, "C5");
     }
 
     expect(ID);
@@ -1199,7 +1204,8 @@ void Parser::errorCode(int cat, int spec, string symbol)
 //outputs type mismatch error
 void Parser::typeMismatch(int lineNo, string constraint)
 {
-    cout << "TYPE MISMATCH " << lineNo << " " << constraint << endl;
+    if(!mismatchFound)
+        cout << "TYPE MISMATCH " << lineNo << " " << constraint << endl;
     exit(1);
 }
 
@@ -1334,11 +1340,6 @@ int Parser::unify(int typeNum1, int typeNum2)
         newType = typeNum2;
     }
 
-    if(testMatch)
-    {
-        cout << "newType: " << newType << endl;
-    }
-
     return newType;
 }
 
@@ -1360,4 +1361,3 @@ int main()
 
     parser.print();
 }
-
