@@ -56,7 +56,6 @@ enum
 
 vector<Parser::Symbol> symTable;
 int typeNum = 5;
-bool mismatchFound = false;
 
 /****
  *  NOTE: While dealing with testing for 1.4 errors
@@ -1204,8 +1203,7 @@ void Parser::errorCode(int cat, int spec, string symbol)
 //outputs type mismatch error
 void Parser::typeMismatch(int lineNo, string constraint)
 {
-    if(!mismatchFound)
-        cout << "TYPE MISMATCH " << lineNo << " " << constraint << endl;
+    cout << "TYPE MISMATCH " << lineNo << " " << constraint << endl;
     exit(1);
 }
 
